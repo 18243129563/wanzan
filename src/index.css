@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #fef8f2;
+  --color-surface-dim: #ded9d3;
+  --color-surface-bright: #fef8f2;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f8f3ec;
+  --color-surface-container: #f3ede6;
+  --color-surface-container-high: #ede7e1;
+  --color-surface-container-highest: #e7e2db;
+  --color-on-surface: #1d1b18;
+  --color-on-surface-variant: #414943;
+  --color-inverse-surface: #32302c;
+  --color-inverse-on-surface: #f6f0e9;
+  --color-outline: #717973;
+  --color-outline-variant: #c1c8c1;
+  --color-surface-tint: #3f6751;
+  --color-primary: #274f3a;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #3f6751;
+  --color-on-primary-container: #b7e3c8;
+  --color-inverse-primary: #a5d0b6;
+  --color-secondary: #336a3a;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #b4f2b5;
+  --color-on-secondary-container: #397040;
+  --color-tertiary: #604033;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #7a5749;
+  --color-on-tertiary-container: #ffd0be;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-primary-fixed: #c0edd1;
+  --color-primary-fixed-dim: #a5d0b6;
+  --color-on-primary-fixed: #002112;
+  --color-on-primary-fixed-variant: #274e3a;
+  --color-secondary-fixed: #b4f2b5;
+  --color-secondary-fixed-dim: #99d59b;
+  --color-on-secondary-fixed: #002107;
+  --color-on-secondary-fixed-variant: #195125;
+  --color-tertiary-fixed: #ffdbce;
+  --color-tertiary-fixed-dim: #eabdab;
+  --color-on-tertiary-fixed: #2d150a;
+  --color-on-tertiary-fixed-variant: #5f3f32;
+  --color-background: #fef8f2;
+  --color-on-background: #1d1b18;
+
+  --font-serif: "Noto Serif", serif;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-heading: "Nunito Sans", sans-serif;
+
+  --spacing-safe-pb: max(env(safe-area-inset-bottom), 16px);
+  --spacing-safe-pt: max(env(safe-area-inset-top), 16px);
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-surface/70 backdrop-blur-[16px] border border-white/60 shadow-[0_8px_32px_rgba(63,103,81,0.06)];
+  }
+  .glass-nav {
+    @apply bg-surface/85 backdrop-blur-[24px] border-t border-white/30 shadow-[0_-4px_24px_rgba(63,103,81,0.08)];
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .text-display-lg {
+    @apply font-serif text-[28px] md:text-[32px] font-black leading-[1.2] tracking-[-0.02em];
+  }
+  .text-headline-md {
+    @apply font-serif text-[24px] font-bold leading-[1.3];
+  }
+  .text-headline-sm {
+    @apply font-heading text-[18px] font-bold leading-[1.3];
+  }
+  .text-body-lg {
+    @apply font-sans text-[16px] font-normal leading-[1.6];
+  }
+  .text-body-sm {
+    @apply font-sans text-[14px] font-normal leading-[1.5];
+  }
+  .text-label-md {
+    @apply font-heading text-[12px] font-semibold leading-[1.2] tracking-[0.05em];
+  }
+}
+
+body {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
