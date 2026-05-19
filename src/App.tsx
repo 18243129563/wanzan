@@ -2,7 +2,18 @@ import { AnimatePresence, motion } from "motion/react";
 import { useState, useMemo } from "react";
 import { ToolRouter } from "./ToolRouter";
 import { LoginScreen } from "./LoginScreen";
-import { dailyTools, funTools, devTools, securityTools, learningTools, timeTools, docTools, allTools } from "./data/tools";
+import { FavoritesScreen } from "./screens/FavoritesScreen";
+import { HistoryScreen } from "./screens/HistoryScreen";
+import {
+  dailyTools,
+  funTools,
+  devTools,
+  securityTools,
+  learningTools,
+  timeTools,
+  docTools,
+  allTools,
+} from "./data/tools";
 import {
   Search,
   Compass,
@@ -47,6 +58,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("discover");
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [showLogin, setShowLogin] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
@@ -89,6 +102,8 @@ export default function App() {
                 onOpenLogin={() => setShowLogin(true)}
                 isLoggedIn={isLoggedIn}
                 onLogout={() => setIsLoggedIn(false)}
+                onOpenFavorites={() => setShowFavorites(true)}
+                onOpenHistory={() => setShowHistory(true)}
               />
             )}
           </AnimatePresence>
@@ -130,13 +145,42 @@ export default function App() {
       <AnimatePresence>
         {activeTool && (
           <div className="fixed inset-0 z-[60]">
-            <ToolRouter activeTool={activeTool} onClose={() => setActiveTool(null)} />
+            <ToolRouter
+              activeTool={activeTool}
+              onClose={() => setActiveTool(null)}
+            />
           </div>
         )}
       </AnimatePresence>
 
       <AnimatePresence>
-        {showLogin && <LoginScreen onClose={() => setShowLogin(false)} onLoginSuccess={() => { setIsLoggedIn(true); setShowLogin(false); }} />}
+        {showLogin && (
+          <LoginScreen
+            onClose={() => setShowLogin(false)}
+            onLoginSuccess={() => {
+              setIsLoggedIn(true);
+              setShowLogin(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showFavorites && (
+          <FavoritesScreen
+            onClose={() => setShowFavorites(false)}
+            onOpenTool={setActiveTool}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showHistory && (
+          <HistoryScreen
+            onClose={() => setShowHistory(false)}
+            onOpenTool={setActiveTool}
+          />
+        )}
       </AnimatePresence>
     </div>
   );
@@ -183,28 +227,35 @@ function NavItem({
 const MotionCard = motion.create("div");
 
 const containerVariants = {
-  hidden: { opacity: 0, y: 15 },
+  hidden: { opacity: 0, filter: "blur(4px)", scale: 0.98 },
   visible: {
     opacity: 1,
-    y: 0,
+    filter: "blur(0px)",
+    scale: 1,
     transition: {
       type: "spring",
-      stiffness: 260,
+      stiffness: 280,
       damping: 25,
-      staggerChildren: 0.08,
-      delayChildren: 0.05,
+      staggerChildren: 0.06,
+      delayChildren: 0.02,
     },
   },
-  exit: { opacity: 0, y: -10, transition: { duration: 0.15 } },
+  exit: {
+    opacity: 0,
+    filter: "blur(4px)",
+    scale: 0.97,
+    transition: { duration: 0.2 },
+  },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, scale: 0.95, y: 15 },
-  visible: { 
-    opacity: 1, 
-    scale: 1, 
-    y: 0, 
-    transition: { type: "spring", stiffness: 300, damping: 24 } 
+  hidden: { opacity: 0, scale: 0.92, y: 15, filter: "blur(2px)" },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { type: "spring", stiffness: 320, damping: 25 },
   },
 };
 
@@ -221,7 +272,7 @@ function DiscoverTab({
     if (!searchQuery) return [];
     return allTools.filter(
       (tool) =>
-        tool.name.includes(searchQuery) || tool.desc.includes(searchQuery)
+        tool.name.includes(searchQuery) || tool.desc.includes(searchQuery),
     );
   }, [searchQuery]);
 
@@ -235,7 +286,7 @@ function DiscoverTab({
     >
       <motion.section variants={itemVariants} className="space-y-4">
         <h2 className="text-headline-md text-on-surface">发现</h2>
-        
+
         <div className="relative w-full pb-2">
           <div className="absolute inset-y-0 left-0 pl-4 mb-2 flex items-center pointer-events-none">
             <Search className="text-outline w-5 h-5" />
@@ -259,30 +310,38 @@ function DiscoverTab({
       </motion.section>
 
       {searchQuery ? (
-        <motion.section 
+        <motion.section
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4 min-h-[40vh]"
         >
-          <h3 className="text-headline-sm text-on-surface">搜索结果 ({filteredTools.length})</h3>
+          <h3 className="text-headline-sm text-on-surface">
+            搜索结果 ({filteredTools.length})
+          </h3>
           {filteredTools.length > 0 ? (
             <div className="grid grid-cols-2 gap-4">
               {filteredTools.map((tool) => (
                 <MotionCard
                   key={tool.id}
                   onClick={() => {
-                      onOpenTool(tool.id);
+                    onOpenTool(tool.id);
                   }}
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   className="glass-card rounded-[24px] p-4 flex flex-col items-start gap-4 justify-between min-h-[130px] cursor-pointer"
                 >
-                  <div className={`w-12 h-12 rounded-[14px] ${tool.bg} flex items-center justify-center shadow-inner border border-white/40 mb-2`}>
+                  <div
+                    className={`w-12 h-12 rounded-[14px] ${tool.bg} flex items-center justify-center shadow-inner border border-white/40 mb-2`}
+                  >
                     <tool.icon className="w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="text-headline-sm text-on-surface placeholder-clip overflow-hidden text-ellipsis line-clamp-1">{tool.name}</h4>
-                    <p className="text-[12px] font-medium tracking-wide text-on-surface-variant mt-1 line-clamp-1">{tool.desc}</p>
+                    <h4 className="text-headline-sm text-on-surface placeholder-clip overflow-hidden text-ellipsis line-clamp-1">
+                      {tool.name}
+                    </h4>
+                    <p className="text-[12px] font-medium tracking-wide text-on-surface-variant mt-1 line-clamp-1">
+                      {tool.desc}
+                    </p>
                   </div>
                 </MotionCard>
               ))}
@@ -290,14 +349,18 @@ function DiscoverTab({
           ) : (
             <div className="py-12 flex flex-col items-center justify-center text-center opacity-60">
               <Search className="w-12 h-12 mb-4 text-on-surface-variant" />
-              <p className="text-body-lg text-on-surface-variant">未找到相关工具</p>
+              <p className="text-body-lg text-on-surface-variant">
+                未找到相关工具
+              </p>
             </div>
           )}
         </motion.section>
       ) : showAll ? (
         <motion.section variants={itemVariants} className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-headline-sm text-on-surface">全部工具 ({allTools.length})</h3>
+            <h3 className="text-headline-sm text-on-surface">
+              全部工具 ({allTools.length})
+            </h3>
             <button
               onClick={() => setShowAll(false)}
               className="text-label-md text-primary hover:text-primary-container transition-colors"
@@ -314,12 +377,18 @@ function DiscoverTab({
                 whileTap={{ scale: 0.95 }}
                 className="glass-card rounded-[24px] p-4 flex flex-col items-start gap-3 justify-between min-h-[120px] cursor-pointer"
               >
-                <div className={`w-10 h-10 rounded-xl ${tool.bg} flex items-center justify-center shadow-inner border border-white/40`}>
+                <div
+                  className={`w-10 h-10 rounded-xl ${tool.bg} flex items-center justify-center shadow-inner border border-white/40`}
+                >
                   <tool.icon className="w-5 h-5 text-current" />
                 </div>
                 <div>
-                  <h4 className="text-body-lg font-bold text-on-surface line-clamp-1">{tool.name}</h4>
-                  <p className="text-[11px] font-medium tracking-wide text-on-surface-variant mt-0.5 line-clamp-1">{tool.desc}</p>
+                  <h4 className="text-body-lg font-bold text-on-surface line-clamp-1">
+                    {tool.name}
+                  </h4>
+                  <p className="text-[11px] font-medium tracking-wide text-on-surface-variant mt-0.5 line-clamp-1">
+                    {tool.desc}
+                  </p>
                 </div>
               </MotionCard>
             ))}
@@ -397,16 +466,24 @@ function DiscoverTab({
                   onClick={() => onOpenTool(tool.id)}
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`glass-card rounded-[24px] p-5 flex flex-col items-start gap-4 justify-between min-h-[130px] cursor-pointer ${i === 0 ? 'col-span-2 flex-row items-center !min-h-[auto]' : ''}`}
+                  className={`glass-card rounded-[24px] p-5 flex flex-col items-start gap-4 justify-between min-h-[130px] cursor-pointer ${i === 0 ? "col-span-2 flex-row items-center !min-h-[auto]" : ""}`}
                 >
-                  <div className={`w-12 h-12 flex-shrink-0 rounded-[14px] ${tool.bg} flex items-center justify-center shadow-inner border border-white/40`}>
+                  <div
+                    className={`w-12 h-12 flex-shrink-0 rounded-[14px] ${tool.bg} flex items-center justify-center shadow-inner border border-white/40`}
+                  >
                     <tool.icon className="w-6 h-6" />
                   </div>
                   <div className={i === 0 ? "flex-1 ml-4" : ""}>
-                    <h4 className="text-headline-sm text-on-surface">{tool.name}</h4>
-                    <p className="text-[12px] font-medium tracking-wide text-on-surface-variant mt-1">{tool.desc}</p>
+                    <h4 className="text-headline-sm text-on-surface">
+                      {tool.name}
+                    </h4>
+                    <p className="text-[12px] font-medium tracking-wide text-on-surface-variant mt-1">
+                      {tool.desc}
+                    </p>
                   </div>
-                  {i === 0 && <ChevronRight className="w-6 h-6 text-outline-variant" />}
+                  {i === 0 && (
+                    <ChevronRight className="w-6 h-6 text-outline-variant" />
+                  )}
                 </MotionCard>
               ))}
             </div>
@@ -426,12 +503,18 @@ function DiscoverTab({
                   whileTap={{ scale: 0.95 }}
                   className="glass-card rounded-[24px] p-5 flex flex-col items-start gap-4 justify-between min-h-[130px] cursor-pointer"
                 >
-                  <div className={`w-12 h-12 rounded-[14px] ${tool.bg} flex items-center justify-center shadow-inner border border-white/40`}>
+                  <div
+                    className={`w-12 h-12 rounded-[14px] ${tool.bg} flex items-center justify-center shadow-inner border border-white/40`}
+                  >
                     <tool.icon className="w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="text-headline-sm text-on-surface">{tool.name}</h4>
-                    <p className="text-[12px] font-medium tracking-wide text-on-surface-variant mt-1">{tool.desc}</p>
+                    <h4 className="text-headline-sm text-on-surface">
+                      {tool.name}
+                    </h4>
+                    <p className="text-[12px] font-medium tracking-wide text-on-surface-variant mt-1">
+                      {tool.desc}
+                    </p>
                   </div>
                 </MotionCard>
               ))}
@@ -572,21 +655,27 @@ function EfficiencyTab({
         </h3>
         <div className="grid grid-cols-2 gap-4">
           {timeTools.map((tool, i) => (
-             <MotionCard
-               key={tool.id}
-               onClick={() => onOpenTool(tool.id)}
-               whileHover={{ scale: 1.05, y: -2 }}
-               whileTap={{ scale: 0.95 }}
-               className="glass-card rounded-[24px] p-5 flex flex-col items-start gap-4 justify-between min-h-[130px] cursor-pointer"
-             >
-               <div className={`w-12 h-12 rounded-[14px] ${tool.bg} flex items-center justify-center shadow-inner border border-white/40`}>
-                 <tool.icon className="w-6 h-6" />
-               </div>
-               <div>
-                 <h4 className="text-headline-sm text-on-surface">{tool.name}</h4>
-                 <p className="text-[12px] font-medium tracking-wide text-on-surface-variant mt-1">{tool.desc}</p>
-               </div>
-             </MotionCard>
+            <MotionCard
+              key={tool.id}
+              onClick={() => onOpenTool(tool.id)}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="glass-card rounded-[24px] p-5 flex flex-col items-start gap-4 justify-between min-h-[130px] cursor-pointer"
+            >
+              <div
+                className={`w-12 h-12 rounded-[14px] ${tool.bg} flex items-center justify-center shadow-inner border border-white/40`}
+              >
+                <tool.icon className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-headline-sm text-on-surface">
+                  {tool.name}
+                </h4>
+                <p className="text-[12px] font-medium tracking-wide text-on-surface-variant mt-1">
+                  {tool.desc}
+                </p>
+              </div>
+            </MotionCard>
           ))}
         </div>
       </motion.section>
@@ -598,22 +687,30 @@ function EfficiencyTab({
         </h3>
         <div className="grid grid-cols-2 gap-4">
           {learningTools.map((tool, i) => (
-             <MotionCard
-               key={tool.id}
-               onClick={() => onOpenTool(tool.id)}
-               whileHover={{ scale: 1.05, y: -2 }}
-               whileTap={{ scale: 0.95 }}
-               className={`glass-card rounded-[24px] p-5 flex flex-col items-start gap-3 justify-between min-h-[130px] cursor-pointer ${i === 0 ? 'col-span-2 flex-row items-center !min-h-[auto]' : ''}`}
-             >
-               <div className={`w-12 h-12 flex-shrink-0 rounded-[14px] ${tool.bg} flex items-center justify-center shadow-inner border border-white/40`}>
-                 <tool.icon className="w-6 h-6" />
-               </div>
-               <div className={i === 0 ? "flex-1 ml-4" : ""}>
-                 <h4 className="text-headline-sm text-on-surface">{tool.name}</h4>
-                 <p className="text-[12px] font-medium tracking-wide text-on-surface-variant mt-1">{tool.desc}</p>
-               </div>
-               {i === 0 && <ChevronRight className="w-6 h-6 text-outline-variant" />}
-             </MotionCard>
+            <MotionCard
+              key={tool.id}
+              onClick={() => onOpenTool(tool.id)}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className={`glass-card rounded-[24px] p-5 flex flex-col items-start gap-3 justify-between min-h-[130px] cursor-pointer ${i === 0 ? "col-span-2 flex-row items-center !min-h-[auto]" : ""}`}
+            >
+              <div
+                className={`w-12 h-12 flex-shrink-0 rounded-[14px] ${tool.bg} flex items-center justify-center shadow-inner border border-white/40`}
+              >
+                <tool.icon className="w-6 h-6" />
+              </div>
+              <div className={i === 0 ? "flex-1 ml-4" : ""}>
+                <h4 className="text-headline-sm text-on-surface">
+                  {tool.name}
+                </h4>
+                <p className="text-[12px] font-medium tracking-wide text-on-surface-variant mt-1">
+                  {tool.desc}
+                </p>
+              </div>
+              {i === 0 && (
+                <ChevronRight className="w-6 h-6 text-outline-variant" />
+              )}
+            </MotionCard>
           ))}
         </div>
       </motion.section>
@@ -632,7 +729,9 @@ function EfficiencyTab({
               whileTap={{ scale: 0.95 }}
               className="glass-card rounded-[24px] p-4 flex flex-col items-center text-center gap-3 justify-center min-h-[110px] cursor-pointer"
             >
-              <div className={`w-14 h-14 rounded-[18px] ${tool.bg} flex items-center justify-center shadow-sm border border-outline-variant/30`}>
+              <div
+                className={`w-14 h-14 rounded-[18px] ${tool.bg} flex items-center justify-center shadow-sm border border-outline-variant/30`}
+              >
                 <tool.icon className="w-7 h-7" />
               </div>
               <h4 className="text-body-sm font-bold text-on-surface tracking-wide mt-1">
@@ -650,10 +749,14 @@ function ProfileTab({
   onOpenLogin,
   isLoggedIn,
   onLogout,
+  onOpenFavorites,
+  onOpenHistory,
 }: {
   onOpenLogin: () => void;
   isLoggedIn: boolean;
   onLogout: () => void;
+  onOpenFavorites: () => void;
+  onOpenHistory: () => void;
   key?: string;
 }) {
   return (
@@ -671,26 +774,26 @@ function ProfileTab({
         onClick={!isLoggedIn ? onOpenLogin : undefined}
       >
         <div className="relative w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-primary-fixed to-surface shadow-md">
-          <div
-            className="w-full h-full rounded-full overflow-hidden border-2 border-surface-container-lowest flex items-center justify-center bg-surface-variant group-hover:bg-surface-container-high transition-colors"
-          >
+          <div className="w-full h-full rounded-full overflow-hidden border-2 border-surface-container-lowest flex items-center justify-center bg-surface-variant group-hover:bg-surface-container-high transition-colors">
             {isLoggedIn ? (
-               <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+              <img
+                src={avatarUrl}
+                alt="avatar"
+                className="w-full h-full object-cover"
+              />
             ) : (
-               <User className="w-10 h-10 text-outline-variant group-hover:scale-110 transition-transform" />
+              <User className="w-10 h-10 text-outline-variant group-hover:scale-110 transition-transform" />
             )}
           </div>
-          <button
-            className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-on-primary rounded-full flex justify-center items-center shadow-sm hover:scale-110 transition-transform cursor-pointer border border-white/20"
-          >
+          <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-on-primary rounded-full flex justify-center items-center shadow-sm hover:scale-110 transition-transform cursor-pointer border border-white/20">
             <Pencil className="w-4 h-4" />
           </button>
         </div>
-        <h2 className="text-display-lg mt-4 mb-2 text-on-surface">{isLoggedIn ? '数字旅行者' : '未登录'}</h2>
+        <h2 className="text-display-lg mt-4 mb-2 text-on-surface">
+          {isLoggedIn ? "数字旅行者" : "未登录"}
+        </h2>
         {!isLoggedIn ? (
-          <button
-            className="flex items-center gap-2 bg-surface-container/50 border border-outline-variant/30 px-5 py-2.5 rounded-full text-[13px] font-semibold text-on-surface hover:bg-surface-variant transition-colors shadow-sm cursor-pointer hover:border-primary/30 active:scale-95"
-          >
+          <button className="flex items-center gap-2 bg-surface-container/50 border border-outline-variant/30 px-5 py-2.5 rounded-full text-[13px] font-semibold text-on-surface hover:bg-surface-variant transition-colors shadow-sm cursor-pointer hover:border-primary/30 active:scale-95">
             <Leaf className="w-4 h-4 text-primary" />
             账号登录
           </button>
@@ -710,7 +813,7 @@ function ProfileTab({
             title="我的收藏"
             subtitle="已收藏的工具与项目"
             hasArrow
-            onClick={onOpenLogin}
+            onClick={isLoggedIn ? onOpenFavorites : onOpenLogin}
           />
           <div className="h-[1px] bg-outline-variant/20 mx-4"></div>
           <ProfileListItem
@@ -719,7 +822,7 @@ function ProfileTab({
             title="使用记录"
             subtitle="最近的使用活动"
             hasArrow
-            onClick={onOpenLogin}
+            onClick={isLoggedIn ? onOpenHistory : onOpenLogin}
           />
         </div>
 
@@ -728,7 +831,7 @@ function ProfileTab({
             icon={Info}
             iconBg="bg-surface-variant text-on-surface-variant"
             title="关于春日小筑"
-            subtitle="版本 1.0.4"
+            subtitle="版本 1.0.0"
             hasArrow
           />
           {isLoggedIn && (

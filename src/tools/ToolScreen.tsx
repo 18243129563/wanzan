@@ -24,10 +24,10 @@ export function ToolScreen({ title, desc, icon: DefaultIcon, bg: defaultBg, onCl
 
   return (
     <motion.div 
-      initial={{ opacity: 0, x: 20, scale: 0.98 }} 
-      animate={{ opacity: 1, x: 0, scale: 1 }} 
-      exit={{ opacity: 0, x: -20, scale: 0.98 }} 
-      transition={{ type: "spring", stiffness: 350, damping: 30 }}
+      initial={{ opacity: 0, y: 30, scale: 0.96, filter: "blur(10px)" }} 
+      animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }} 
+      exit={{ opacity: 0, y: 20, scale: 0.98, filter: "blur(4px)" }} 
+      transition={{ type: "spring", stiffness: 350, damping: 30, mass: 0.8 }}
       className="fixed inset-0 z-[100] flex flex-col bg-background overflow-y-auto pb-12"
     >
       <header className="sticky top-0 w-full z-40 flex items-center px-4 h-16 bg-surface/80 backdrop-blur-lg pt-safe-pt gap-3 border-b border-surface-variant flex-shrink-0">
