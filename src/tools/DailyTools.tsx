@@ -85,7 +85,7 @@ export function FocusTimer({ onClose }: { onClose: () => void }) {
 
   return (
     <ToolScreen title="专注计时" desc="番茄钟已就绪。保持专注，提升效率。" icon={Timer} bg="bg-[#7a5749]" onClose={onClose}>
-      <div className="flex-1 flex flex-col items-center justify-center -mt-10">
+      <div className="flex-1 flex flex-col items-center justify-center pt-2">
         <div className="relative w-64 h-64 flex items-center justify-center">
             <svg className="absolute inset-0 w-full h-full transform -rotate-90 drop-shadow-md" viewBox="0 0 100 100">
               <circle className="text-surface-variant/50" cx="50" cy="50" fill="transparent" r="46" stroke="currentColor" strokeWidth="2"></circle>
@@ -155,7 +155,7 @@ export function UnitConverter({ onClose }: { onClose: () => void }) {
 export function ScannerTool({ onClose }: { onClose: () => void }) {
   return (
     <ToolScreen title="扫描仪" desc="将纸质文档快速扫描为电子版。" icon={ScanLine} bg="bg-secondary-fixed/40 text-secondary" onClose={onClose}>
-      <div className="flex-1 flex flex-col items-center justify-center -mt-10">
+      <div className="flex-1 flex flex-col items-center justify-center pt-2">
         <div className="w-64 h-80 rounded-3xl border-2 border-dashed border-primary/40 flex items-center justify-center bg-surface-container relative overflow-hidden">
           <ScanLine className="w-16 h-16 text-primary opacity-50" />
           <div className="absolute top-0 left-0 w-full h-2 bg-primary/40 animate-[pulse_2s_ease-in-out_infinite] shadow-[0_0_20px_rgba(39,79,58,0.6)]"></div>
@@ -196,7 +196,7 @@ export function WeatherTool({ onClose }: { onClose: () => void }) {
 export function CompassTool({ onClose }: { onClose: () => void }) {
   return (
     <ToolScreen title="指南针" icon={Compass} bg="bg-surface-variant/80 text-on-surface-variant" onClose={onClose}>
-       <div className="flex-1 flex flex-col justify-center items-center -mt-10">
+       <div className="flex-1 flex flex-col justify-center items-center pt-2">
           <span className="text-display-lg text-primary tracking-tighter mb-12">45° NE</span>
           <div className="relative w-72 h-72 rounded-full border-[8px] border-surface-variant shadow-inner flex items-center justify-center">
              <div className="absolute top-4 font-bold text-on-surface text-lg">N</div>

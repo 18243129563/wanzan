@@ -33,42 +33,140 @@ export function WordCountTool({ onClose }: { onClose: () => void }) {
 }
 
 export function QuestionBankTool({ onClose }: { onClose: () => void }) {
+  const [studying, setStudying] = useState(false);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [cardIndex, setCardIndex] = useState(0);
+
+  const cards = [
+    { q: '什么是 TypeScript 中的泛型？', a: '泛型允许在定义函数、接口或类时不预先指定具体的类型，而在使用的时候再指定类型的一种特性。' },
+    { q: 'React 中 useEffect 的作用是什么？', a: '用于在函数组件中执行副作用操作，如数据获取、订阅或手动修改 DOM。' },
+    { q: '闭包的概念是什么？', a: '闭包是指有权访问另一个函数作用域中的变量的函数。' }
+  ];
+
+  const handleNext = () => {
+    if (cardIndex < cards.length - 1) {
+      setCardIndex(i => i + 1);
+      setShowAnswer(false);
+    } else {
+      setStudying(false);
+      setCardIndex(0);
+      setShowAnswer(false);
+    }
+  };
+
   return (
-    <ToolScreen title="题库复习" desc="艾宾浩斯记忆法，科学管理复习进度。" icon={HelpCircle} bg="bg-primary/20 text-primary" onClose={onClose}>
-        <div className="glass-card p-6 rounded-[24px] shadow-sm flex flex-col gap-4 text-center items-center">
-            <h3 className="text-headline-sm text-on-surface mt-2">今日需复习任务</h3>
-            <p className="text-display-lg text-primary tracking-tighter">42 <span className="text-lg font-bold text-on-surface-variant">题</span></p>
-            <button className="flex items-center gap-2 bg-primary text-on-primary font-semibold text-body-sm py-3 px-8 rounded-full shadow-md hover:scale-105 active:scale-95 transition-all mt-2">
-              开始学习 <Play className="w-4 h-4" />
-            </button>
-            <div className="w-full h-[1px] bg-outline-variant/30 my-2"></div>
-            <div className="flex justify-around w-full">
-               <div className="flex flex-col">
-                 <span className="text-headline-sm text-on-surface">158</span>
-                 <span className="text-[11px] text-on-surface-variant tracking-widest font-semibold mt-1">已掌握</span>
-               </div>
-               <div className="flex flex-col">
-                 <span className="text-headline-sm text-on-surface">24</span>
-                 <span className="text-[11px] text-on-surface-variant tracking-widest font-semibold mt-1">易错题</span>
-               </div>
-               <div className="flex flex-col">
-                 <span className="text-headline-sm text-on-surface">36</span>
-                 <span className="text-[11px] text-on-surface-variant tracking-widest font-semibold mt-1">未开始</span>
-               </div>
+    <ToolScreen title="复习小筑" desc="艾宾浩斯记忆法，科学管理复习进度。" icon={HelpCircle} bg="bg-primary/20 text-primary" onClose={onClose}>
+        {!studying ? (
+          <>
+            <div className="glass-card p-8 rounded-[32px] shadow-sm flex flex-col gap-6 text-center items-center relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/40 to-primary"></div>
+                <div className="flex flex-col items-center gap-1">
+                  <h3 className="text-body-lg font-medium text-on-surface-variant">今日需复习</h3>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-[64px] font-black text-primary tracking-tighter leading-none">{cards.length}</span>
+                    <span className="text-headline-sm font-bold text-on-surface-variant mb-2">题</span>
+                  </div>
+                </div>
+                
+                <button onClick={() => setStudying(true)} className="w-full relative group overflow-hidden rounded-2xl bg-primary text-on-primary font-bold text-lg py-4 shadow-lg hover:shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                  <span className="relative z-10 flex items-center gap-2">开始学习 <Play className="w-5 h-5 fill-current" /></span>
+                </button>
+                
+                <div className="w-full h-[1px] bg-outline-variant/30"></div>
+                
+                <div className="flex justify-between w-full px-2">
+                  <div className="flex flex-col items-center">
+                    <span className="text-title-lg font-bold text-on-surface">158</span>
+                    <span className="text-label-sm text-on-surface-variant font-medium mt-1">已掌握</span>
+                  </div>
+                  <div className="w-[1px] h-10 bg-outline-variant/30 self-center"></div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-title-lg font-bold text-on-surface">24</span>
+                    <span className="text-label-sm text-error font-medium mt-1">易错题</span>
+                  </div>
+                  <div className="w-[1px] h-10 bg-outline-variant/30 self-center"></div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-title-lg font-bold text-on-surface">36</span>
+                    <span className="text-label-sm text-on-surface-variant font-medium mt-1">未开始</span>
+                  </div>
+                </div>
             </div>
-        </div>
-        <div className="mt-4 flex flex-col gap-3 mb-8">
-           <h3 className="text-headline-sm text-on-surface mb-1">题集</h3>
-           {['高等数学下册', '英语四级核心词汇', '前端面试八股文'].map((deck, i) => (
-             <div key={i} className="glass-card px-5 py-4 rounded-[20px] shadow-sm flex justify-between items-center cursor-pointer hover:bg-surface-variant/40 transition-colors">
-               <span className="text-body-sm font-bold text-on-surface">{deck}</span>
-               <div className="flex items-center gap-2">
-                 <div className="w-2 h-2 rounded-full bg-primary-fixed-dim"></div>
-                 <span className="text-[11px] text-on-surface-variant font-semibold">进阶中</span>
+
+            <div className="mt-8 flex flex-col gap-4 mb-8">
+              <div className="flex items-center justify-between px-2">
+                <h3 className="text-title-md font-bold text-on-surface">我的题集</h3>
+                <button className="text-primary text-label-md font-bold hover:underline">查看全部</button>
+              </div>
+              <div className="grid gap-3">
+                {['前端面试八股文', '高等数学下册', '英语四级核心词汇'].map((deck, i) => (
+                  <div key={i} className="glass-card px-5 py-5 rounded-[24px] shadow-sm flex justify-between items-center cursor-pointer hover:bg-surface-variant/50 transition-colors group">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${i === 0 ? 'bg-primary/20 text-primary' : i === 1 ? 'bg-secondary/20 text-secondary' : 'bg-tertiary/20 text-tertiary'}`}>
+                        {deck.substring(0, 1)}
+                      </div>
+                      <div className="flex flex-col text-left">
+                        <span className="text-body-md font-bold text-on-surface group-hover:text-primary transition-colors">{deck}</span>
+                        <span className="text-label-sm text-on-surface-variant mt-0.5 text-left">进度 {Math.floor(Math.random() * 50) + 50}%</span>
+                      </div>
+                    </div>
+                    <div className="w-8 h-8 rounded-full border border-outline-variant/50 flex items-center justify-center text-on-surface-variant group-hover:bg-primary group-hover:text-on-primary group-hover:border-primary transition-colors">
+                      <Play className="w-4 h-4 ml-0.5 fill-current" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col -mt-2 pb-8 h-full">
+            <div className="flex items-center justify-between mb-6 px-2">
+              <span className="text-label-md font-bold text-on-surface-variant">学习中</span>
+              <div className="bg-surface-variant text-on-surface px-3 py-1 rounded-full text-label-sm font-bold font-mono">
+                {cardIndex + 1} / {cards.length}
+              </div>
+            </div>
+            
+            <div className="w-full flex-1 min-h-[360px] flex flex-col glass-card rounded-[32px] overflow-hidden shadow-md relative group">
+               <div className="absolute top-0 left-0 h-1.5 bg-primary/20 w-full z-10">
+                 <div className="h-full bg-primary transition-all duration-300" style={{width: `${((cardIndex)/(cards.length))*100}%`}}></div>
                </div>
-             </div>
-           ))}
-        </div>
+               
+               <div className="flex-1 p-8 flex flex-col justify-center items-center text-center">
+                  <p className="text-title-lg font-bold text-on-surface leading-normal">{cards[cardIndex].q}</p>
+               </div>
+               
+               {showAnswer && (
+                  <div className="w-full flex-1 min-h-[160px] border-t border-outline-variant/30 p-8 flex items-center justify-center bg-surface-container/50 animate-in slide-in-from-bottom-8 fade-in duration-500">
+                     <p className="text-body-lg text-on-surface text-start w-full leading-relaxed">{cards[cardIndex].a}</p>
+                  </div>
+               )}
+            </div>
+
+            <div className="mt-8 w-full">
+              {!showAnswer ? (
+                 <button onClick={() => setShowAnswer(true)} className="w-full h-16 bg-surface-variant hover:bg-surface-container-highest text-on-surface rounded-2xl font-bold shadow-sm active:scale-[0.98] transition-all text-title-md border border-outline-variant/30">
+                   显示答案
+                 </button>
+              ) : (
+                 <div className="flex gap-3 w-full animate-in slide-in-from-bottom-4 fade-in duration-300">
+                    <button onClick={handleNext} className="h-16 flex-1 bg-error/10 hover:bg-error/20 text-error rounded-2xl font-bold active:scale-95 transition-all flex flex-col items-center justify-center gap-0.5">
+                      <span className="text-body-md">生疏</span>
+                      <span className="text-[10px] opacity-80 font-mono tracking-tighter">1 min</span>
+                    </button>
+                    <button onClick={handleNext} className="h-16 flex-1 bg-surface-variant hover:bg-surface-container-highest text-on-surface rounded-2xl font-bold active:scale-95 transition-all flex flex-col items-center justify-center gap-0.5 border border-outline-variant/30">
+                      <span className="text-body-md">犹豫</span>
+                      <span className="text-[10px] opacity-80 font-mono tracking-tighter">10 min</span>
+                    </button>
+                    <button onClick={handleNext} className="h-16 flex-1 bg-primary text-on-primary rounded-2xl font-bold active:scale-95 transition-all flex flex-col items-center justify-center gap-0.5 shadow-md hover:shadow-lg">
+                      <span className="text-body-md">掌握</span>
+                      <span className="text-[10px] opacity-80 font-mono tracking-tighter">1 d</span>
+                    </button>
+                 </div>
+              )}
+            </div>
+          </div>
+        )}
     </ToolScreen>
   );
 }
@@ -146,7 +244,7 @@ export function MarkdownEditor({ onClose }: { onClose: () => void }) {
 export function WordToPdfTool({ onClose }: { onClose: () => void }) {
   return (
     <ToolScreen title="Word 转 PDF" desc="将 Word 文档转换为不可编辑的 PDF 格式" icon={FileImage} bg="bg-primary/20 text-primary" onClose={onClose}>
-      <div className="flex-1 flex flex-col items-center justify-center -mt-10 gap-6">
+      <div className="flex-1 flex flex-col items-center justify-center pt-2 gap-6">
          <div className="w-full max-w-sm aspect-video border-2 border-dashed border-outline-variant/60 rounded-[32px] flex flex-col items-center justify-center bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer group">
             <div className="w-16 h-16 rounded-2xl bg-primary-container text-on-primary-container flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                <FileImage className="w-8 h-8" />
@@ -165,7 +263,7 @@ export function WordToPdfTool({ onClose }: { onClose: () => void }) {
 export function PdfToWordTool({ onClose }: { onClose: () => void }) {
   return (
     <ToolScreen title="PDF 转 Word" desc="将 PDF 文件提取为可编辑的 Word 文档" icon={File} bg="bg-secondary/20 text-secondary" onClose={onClose}>
-      <div className="flex-1 flex flex-col items-center justify-center -mt-10 gap-6">
+      <div className="flex-1 flex flex-col items-center justify-center pt-2 gap-6">
          <div className="w-full max-w-sm aspect-video border-2 border-dashed border-outline-variant/60 rounded-[32px] flex flex-col items-center justify-center bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer group">
             <div className="w-16 h-16 rounded-2xl bg-secondary-container text-on-secondary-container flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                <File className="w-8 h-8" />
