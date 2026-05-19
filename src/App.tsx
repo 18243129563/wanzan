@@ -51,9 +51,6 @@ import {
   X,
 } from "lucide-react";
 
-const avatarUrl =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuB7q8s8py6uV7bXowPG63OoDlLB_tUoomeVVE4gvWioRa8D4fffaKLF2XMZBvcc0-DLM_oMExG5t28xUZB_n9Oyshu1E-KuAOF1Ov7RAg_8llSNirykA-jAZOZoALP-UuEOzMpDt3gQUAVgMaCPk0sbLgW5yZMQzV386h7ub2b_zPg6JjTPGt6H_V56Qzp_q0CieQlkkk9QQvEn-2FH6orAlECE-CoSDyKENK9ZTCDTmNRTrcNqUiRzz6LyU3uqIelsQsi2qFZae84d";
-
 export default function App() {
   const [activeTab, setActiveTab] = useState("discover");
   const [activeTool, setActiveTool] = useState<string | null>(null);
@@ -61,6 +58,9 @@ export default function App() {
   const [showFavorites, setShowFavorites] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userAvatar, setUserAvatar] = useState(
+    "https://api.dicebear.com/7.x/notionists/svg?seed=Mimi&backgroundColor=e6f4ea",
+  );
 
   return (
     <div className="bg-background text-on-background min-h-[100dvh] relative overflow-x-hidden selection:bg-primary-fixed selection:text-on-primary-fixed">
@@ -72,8 +72,8 @@ export default function App() {
       {/* Main Container */}
       <div className="flex flex-col min-h-[100dvh] relative z-10 mx-auto max-w-7xl">
         {/* Top App Bar */}
-        <header className="sticky top-0 w-full z-40 flex flex-col px-5 md:px-8 bg-surface/80 backdrop-blur-lg pt-safe-pt">
-          <div className="flex justify-between items-center h-16">
+        <header className="sticky top-0 w-full z-40 flex flex-col px-5 md:px-8 bg-surface/80 backdrop-blur-lg pt-2">
+          <div className="flex justify-between items-center h-14 md:h-16">
             <div className="flex items-center gap-2.5">
               <Leaf className="w-7 h-7 md:w-8 md:h-8 fill-primary text-primary" />
               <h1 className="text-2xl md:text-[26px] font-extrabold text-primary tracking-tight">
@@ -104,6 +104,8 @@ export default function App() {
                 onLogout={() => setIsLoggedIn(false)}
                 onOpenFavorites={() => setShowFavorites(true)}
                 onOpenHistory={() => setShowHistory(true)}
+                userAvatar={userAvatar}
+                setUserAvatar={setUserAvatar}
               />
             )}
           </AnimatePresence>
@@ -227,35 +229,37 @@ function NavItem({
 const MotionCard = motion.create("div");
 
 const containerVariants = {
-  hidden: { opacity: 0, filter: "blur(4px)", scale: 0.98 },
+  hidden: { opacity: 0, filter: "blur(4px)", scale: 0.96, y: 5 },
   visible: {
     opacity: 1,
     filter: "blur(0px)",
     scale: 1,
+    y: 0,
     transition: {
       type: "spring",
-      stiffness: 280,
+      stiffness: 350,
       damping: 25,
-      staggerChildren: 0.06,
-      delayChildren: 0.02,
+      staggerChildren: 0.08,
+      delayChildren: 0.03,
     },
   },
   exit: {
     opacity: 0,
     filter: "blur(4px)",
-    scale: 0.97,
-    transition: { duration: 0.2 },
+    scale: 0.96,
+    y: -5,
+    transition: { duration: 0.2, ease: "easeOut" },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, scale: 0.92, y: 15, filter: "blur(2px)" },
+  hidden: { opacity: 0, scale: 0.85, y: 20, filter: "blur(4px)" },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
     filter: "blur(0px)",
-    transition: { type: "spring", stiffness: 320, damping: 25 },
+    transition: { type: "spring", stiffness: 450, damping: 20 },
   },
 };
 
@@ -751,14 +755,26 @@ function ProfileTab({
   onLogout,
   onOpenFavorites,
   onOpenHistory,
+  userAvatar,
+  setUserAvatar,
 }: {
   onOpenLogin: () => void;
   isLoggedIn: boolean;
   onLogout: () => void;
   onOpenFavorites: () => void;
   onOpenHistory: () => void;
+  userAvatar: string;
+  setUserAvatar: (url: string) => void;
   key?: string;
 }) {
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setUserAvatar(url);
+    }
+  };
+
   return (
     <motion.div
       variants={containerVariants}
@@ -774,10 +790,19 @@ function ProfileTab({
         onClick={!isLoggedIn ? onOpenLogin : undefined}
       >
         <div className="relative w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-primary-fixed to-surface shadow-md">
+          {isLoggedIn && (
+            <input
+              type="file"
+              accept="image/*"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              onChange={handleAvatarUpload}
+              title="Upload avatar"
+            />
+          )}
           <div className="w-full h-full rounded-full overflow-hidden border-2 border-surface-container-lowest flex items-center justify-center bg-surface-variant group-hover:bg-surface-container-high transition-colors">
             {isLoggedIn ? (
               <img
-                src={avatarUrl}
+                src={userAvatar}
                 alt="avatar"
                 className="w-full h-full object-cover"
               />
@@ -785,12 +810,14 @@ function ProfileTab({
               <User className="w-10 h-10 text-outline-variant group-hover:scale-110 transition-transform" />
             )}
           </div>
-          <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-on-primary rounded-full flex justify-center items-center shadow-sm hover:scale-110 transition-transform cursor-pointer border border-white/20">
+          <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-on-primary rounded-full flex justify-center items-center shadow-sm hover:scale-110 transition-transform cursor-pointer border border-white/20 z-0">
             <Pencil className="w-4 h-4" />
           </button>
         </div>
-        <h2 className="text-display-lg mt-4 mb-2 text-on-surface">
-          {isLoggedIn ? "数字旅行者" : "未登录"}
+        <h2
+          className={`mt-4 mb-2 text-on-surface ${isLoggedIn ? "text-headline-sm font-bold truncate max-w-full px-4" : "text-display-lg"}`}
+        >
+          {isLoggedIn ? "ittmarkrueger4@gmail.com" : "未登录"}
         </h2>
         {!isLoggedIn ? (
           <button className="flex items-center gap-2 bg-surface-container/50 border border-outline-variant/30 px-5 py-2.5 rounded-full text-[13px] font-semibold text-on-surface hover:bg-surface-variant transition-colors shadow-sm cursor-pointer hover:border-primary/30 active:scale-95">
@@ -798,8 +825,8 @@ function ProfileTab({
             账号登录
           </button>
         ) : (
-          <div className="flex items-center gap-2 text-on-surface-variant text-body-sm bg-surface-container/30 px-3 py-1 rounded-full border border-white/10">
-            <span>user@springnest.app</span>
+          <div className="flex items-center gap-2 text-primary font-medium text-body-sm bg-primary-container/30 px-3 py-1 rounded-full border border-primary/20">
+            <span>已验证</span>
           </div>
         )}
       </motion.div>

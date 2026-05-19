@@ -8,6 +8,11 @@ import {
   Play,
   ChevronLeft,
   Calendar,
+  BookOpen,
+  UploadCloud,
+  Download,
+  Eye,
+  List,
 } from "lucide-react";
 import {
   motion,
