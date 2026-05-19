@@ -20,7 +20,7 @@ export function ToolScreen({ title, desc, icon: DefaultIcon, bg: defaultBg, onCl
   const Icon = toolInfo?.icon || DefaultIcon;
   const bg = toolInfo?.bg || defaultBg;
   const displayTitle = toolInfo?.name || title;
-  const displayDesc = desc; // We keep the specific desc from the prop, or we could use toolInfo?.desc 
+  const displayDesc = desc || toolInfo?.desc;
 
   return (
     <motion.div 

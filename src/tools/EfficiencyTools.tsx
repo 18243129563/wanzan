@@ -1,16 +1,26 @@
 import { HelpCircle, ListOrdered, FileText, Wallet, FileImage, File, Play } from 'lucide-react';
 import { ToolScreen } from './ToolScreen';
+import { useState } from 'react';
 
 export function WordCountTool({ onClose }: { onClose: () => void }) {
+  const [text, setText] = useState('Spring Nest的设计语言，强调数字避难所的体验。');
+  
+  const count = {
+    total: text.length,
+    noSpace: text.replace(/\s+/g, '').length,
+    punct: (text.match(/[.,\/#!$%\^&\*;:{}=\-_`~()""''，。！？；：（）《》【】]/g) || []).length,
+    time: Math.ceil(text.length / 400 * 60) + ' 秒'
+  };
+
   return (
     <ToolScreen title="字数统计" desc="实时分析文本指标" icon={ListOrdered} bg="bg-secondary-container text-on-secondary-container" onClose={onClose}>
-       <textarea className="w-full h-40 p-5 rounded-3xl bg-surface-container border border-outline-variant/30 outline-none text-body-sm resize-none" placeholder="输入文本..." defaultValue="Spring Nest的设计语言，强调数字避难所的体验。"></textarea>
-       <div className="grid grid-cols-2 gap-4">
+       <textarea value={text} onChange={e=>setText(e.target.value)} className="w-full h-40 p-5 rounded-3xl bg-surface-container border border-outline-variant/30 outline-none text-body-sm resize-none" placeholder="输入文本..."></textarea>
+       <div className="grid grid-cols-2 gap-4 mt-4">
           {[
-            { label: '总字数', count: 23 },
-            { label: '字符数 (不含空格)', count: 22 },
-            { label: '标点符号', count: 2 },
-            { label: '近似阅读时间', count: '1 秒' }
+            { label: '总字数', count: count.total },
+            { label: '字符数 (不含空格)', count: count.noSpace },
+            { label: '标点符号', count: count.punct },
+            { label: '近似阅读时间', count: count.time }
           ].map((item, i) => (
              <div key={i} className="glass-card p-4 rounded-[20px] flex flex-col justify-center items-center shadow-sm">
                 <span className="text-display-lg text-primary">{item.count}</span>
@@ -112,6 +122,8 @@ export function AccountingTool({ onClose }: { onClose: () => void }) {
 }
 
 export function MarkdownEditor({ onClose }: { onClose: () => void }) {
+  const [text, setText] = useState("# Spring Nest Design System\n\nThe design system embodies a **healing, minimalist, and professional** aesthetic, conceptualized as a \"Digital Sanctuary\".\n\n## Core Principles\n- Craftsmanship over Defaults\n- Intentional Variation");
+
   return (
     <ToolScreen title="Markdown 编辑" desc="纯净的富文本编辑体验。" icon={FileText} bg="bg-tertiary-container text-on-tertiary-container" onClose={onClose}>
       <div className="flex-1 flex flex-col bg-surface-container rounded-2xl overflow-hidden border border-outline-variant/30 relative">
@@ -123,7 +135,8 @@ export function MarkdownEditor({ onClose }: { onClose: () => void }) {
         <textarea 
           className="flex-1 w-full bg-transparent p-4 outline-none font-mono text-[14px] leading-relaxed resize-none" 
           placeholder="# 在此输入标题&#10;&#10;开始你的创作..."
-          defaultValue="# Spring Nest Design System&#10;&#10;The design system embodies a **healing, minimalist, and professional** aesthetic, conceptualized as a &#34;Digital Sanctuary&#34;.&#10;&#10;## Core Principles&#10;- Craftsmanship over Defaults&#10;- Intentional Variation"
+          value={text}
+          onChange={e=>setText(e.target.value)}
         />
       </div>
     </ToolScreen>

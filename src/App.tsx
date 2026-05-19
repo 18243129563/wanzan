@@ -48,15 +48,6 @@ export default function App() {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [showLogin, setShowLogin] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const filteredTools = useMemo(() => {
-    if (!searchQuery) return [];
-    return allTools.filter(
-      (tool) =>
-        tool.name.includes(searchQuery) || tool.desc.includes(searchQuery)
-    );
-  }, [searchQuery]);
 
   return (
     <div className="bg-background text-on-background min-h-[100dvh] relative overflow-x-hidden selection:bg-primary-fixed selection:text-on-primary-fixed">
@@ -78,69 +69,11 @@ export default function App() {
             </div>
             {/* Action buttons could go here */}
           </div>
-          <div className="relative w-full pb-4">
-            <div className="absolute inset-y-0 left-0 pl-4 mb-4 flex items-center pointer-events-none">
-              <Search className="text-outline w-5 h-5" />
-            </div>
-            <input
-              type="text"
-              className="w-full h-12 pl-12 pr-12 bg-surface-container-high/60 backdrop-blur-md border border-white/20 rounded-[20px] text-body-md text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none transition-shadow shadow-sm"
-              placeholder="搜索工具、小组件..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute inset-y-0 right-2 mb-4 w-10 h-12 flex items-center justify-center text-on-surface-variant/50 hover:text-on-surface transition-colors active:scale-95"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
         </header>
 
         {/* Main Content Area */}
         <main className="flex-1 w-full px-5 md:px-8 pt-4 pb-28 md:pb-12">
-          {searchQuery ? (
-            <motion.section 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-4 min-h-[40vh]"
-            >
-              <h3 className="text-headline-sm text-on-surface">搜索结果 ({filteredTools.length})</h3>
-              {filteredTools.length > 0 ? (
-                <div className="grid grid-cols-2 gap-4">
-                  {filteredTools.map((tool) => (
-                    <MotionCard
-                      key={tool.id}
-                      onClick={() => {
-                          setActiveTool(tool.id);
-                          setSearchQuery("");
-                      }}
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="glass-card rounded-[24px] p-5 flex flex-col items-start gap-4 justify-between min-h-[130px] cursor-pointer"
-                    >
-                      <div className={`w-12 h-12 rounded-[14px] ${tool.bg} flex items-center justify-center shadow-inner border border-white/40`}>
-                        <tool.icon className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h4 className="text-headline-sm text-on-surface placeholder-clip overflow-hidden text-ellipsis line-clamp-1">{tool.name}</h4>
-                        <p className="text-[12px] font-medium tracking-wide text-on-surface-variant mt-1 line-clamp-1">{tool.desc}</p>
-                      </div>
-                    </MotionCard>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-12 flex flex-col items-center justify-center text-center opacity-60">
-                  <Search className="w-12 h-12 mb-4 text-on-surface-variant" />
-                  <p className="text-body-lg text-on-surface-variant">未找到相关工具</p>
-                </div>
-              )}
-            </motion.section>
-          ) : (
-            <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait">
             {activeTab === "discover" && (
               <DiscoverTab key="discover" onOpenTool={setActiveTool} />
             )}
@@ -159,7 +92,6 @@ export default function App() {
               />
             )}
           </AnimatePresence>
-          )}
         </main>
 
         {/* Bottom Navigation */}
@@ -283,6 +215,15 @@ function DiscoverTab({
   key?: string;
 }) {
   const [showAll, setShowAll] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredTools = useMemo(() => {
+    if (!searchQuery) return [];
+    return allTools.filter(
+      (tool) =>
+        tool.name.includes(searchQuery) || tool.desc.includes(searchQuery)
+    );
+  }, [searchQuery]);
 
   return (
     <motion.div
@@ -294,10 +235,66 @@ function DiscoverTab({
     >
       <motion.section variants={itemVariants} className="space-y-4">
         <h2 className="text-headline-md text-on-surface">发现</h2>
+        
+        <div className="relative w-full pb-2">
+          <div className="absolute inset-y-0 left-0 pl-4 mb-2 flex items-center pointer-events-none">
+            <Search className="text-outline w-5 h-5" />
+          </div>
+          <input
+            type="text"
+            className="w-full h-12 pl-12 pr-12 bg-surface-container-high/60 backdrop-blur-md border border-white/20 rounded-[20px] text-body-md text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none transition-shadow shadow-sm"
+            placeholder="搜索工具、小组件..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute inset-y-0 right-2 mb-2 w-10 h-12 flex items-center justify-center text-on-surface-variant/50 hover:text-on-surface transition-colors active:scale-95"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </motion.section>
 
-      {/* Hero Section */}
-      {showAll ? (
+      {searchQuery ? (
+        <motion.section 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4 min-h-[40vh]"
+        >
+          <h3 className="text-headline-sm text-on-surface">搜索结果 ({filteredTools.length})</h3>
+          {filteredTools.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4">
+              {filteredTools.map((tool) => (
+                <MotionCard
+                  key={tool.id}
+                  onClick={() => {
+                      onOpenTool(tool.id);
+                  }}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="glass-card rounded-[24px] p-4 flex flex-col items-start gap-4 justify-between min-h-[130px] cursor-pointer"
+                >
+                  <div className={`w-12 h-12 rounded-[14px] ${tool.bg} flex items-center justify-center shadow-inner border border-white/40 mb-2`}>
+                    <tool.icon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-headline-sm text-on-surface placeholder-clip overflow-hidden text-ellipsis line-clamp-1">{tool.name}</h4>
+                    <p className="text-[12px] font-medium tracking-wide text-on-surface-variant mt-1 line-clamp-1">{tool.desc}</p>
+                  </div>
+                </MotionCard>
+              ))}
+            </div>
+          ) : (
+            <div className="py-12 flex flex-col items-center justify-center text-center opacity-60">
+              <Search className="w-12 h-12 mb-4 text-on-surface-variant" />
+              <p className="text-body-lg text-on-surface-variant">未找到相关工具</p>
+            </div>
+          )}
+        </motion.section>
+      ) : showAll ? (
         <motion.section variants={itemVariants} className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-headline-sm text-on-surface">全部工具 ({allTools.length})</h3>
