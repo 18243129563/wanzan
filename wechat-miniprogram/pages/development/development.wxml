@@ -1,15 +1,65 @@
 <!--pages/development/development.wxml-->
-<view class="container">
-  <view class="section-title">开发</view>
-  <view class="section-subtitle">为您打造的高效、便捷的日常开发工具箱。</view>
+<view class="dev-root-viewport animate-[fadeIn_0.5s]">
   
-  <view class="tool-list">
-    <view class="tool-item" wx:for="{{tools}}" wx:key="id" bindtap="onToolSelect">
-      <view class="tool-item-icon bg-primary"></view>
-      <view class="tool-item-content">
-        <text class="tool-item-name">{{item.name}}</text>
-        <text class="tool-item-desc">{{item.desc}}</text>
+  <!-- Page Header -->
+  <view class="dev-header">
+    <text class="dev-title">开发辅助</text>
+    <text class="dev-subtitle">高效、纯粹的程序研发随身开发工具箱。</text>
+    <view class="divider-line"></view>
+  </view>
+
+  <!-- Dev Assistance Group -->
+  <view class="dev-section mt-4">
+    <view class="section-title-row">
+      <text class="badge-tag bg-primary"></text>
+      <text class="section-title-text">研发辅助 (COMPILERS)</text>
+    </view>
+
+    <view class="dev-tools-grid">
+      <view 
+        class="dev-tool-card border shadow-sm" 
+        wx:for="{{devTools}}" 
+        wx:key="id" 
+        bindtap="onToolSelect" 
+        data-id="{{item.id}}"
+      >
+        <view class="dev-icon-block" style="background-color: {{item.colorBg}};">
+          <text class="dev-icon-emoji">{{item.iconArt}}</text>
+        </view>
+        <view class="dev-card-info">
+          <text class="dev-tool-name">{{item.name}}</text>
+          <text class="dev-tool-desc">{{item.desc}}</text>
+        </view>
+        <text class="action-chevron">➔</text>
       </view>
     </view>
   </view>
+
+  <!-- Security & Privacy Group -->
+  <view class="dev-section mt-6">
+    <view class="section-title-row">
+      <text class="badge-tag bg-brown"></text>
+      <text class="section-title-text">安全隐私 (SECURITY)</text>
+    </view>
+
+    <view class="dev-tools-grid">
+      <view 
+        class="dev-tool-card border shadow-sm" 
+        wx:for="{{securityTools}}" 
+        wx:key="id" 
+        bindtap="onToolSelect" 
+        data-id="{{item.id}}"
+      >
+        <view class="dev-icon-block" style="background-color: {{item.colorBg}};">
+          <text class="dev-icon-emoji">{{item.iconArt}}</text>
+        </view>
+        <view class="dev-card-info">
+          <text class="dev-tool-name">{{item.name}}</text>
+          <text class="dev-tool-desc">{{item.desc}}</text>
+        </view>
+        <text class="action-chevron">➔</text>
+      </view>
+    </view>
+  </view>
+
 </view>

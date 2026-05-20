@@ -49,7 +49,6 @@ import {
   File,
   Volume2,
   X,
-  Shield,
   Lock,
   EyeOff,
   Server,
@@ -270,58 +269,37 @@ function AboutScreen({ onClose }: { onClose: () => void }) {
         <div className="space-y-4 text-justify">
           <h3 className="text-title-md font-bold text-on-surface flex items-center gap-2 border-l-3 border-primary pl-2.5">
             <Leaf className="w-4 h-4 text-primary fill-current" />
-            小筑诞生之初
+            心路历程与设计初心
           </h3>
           <p className="text-body-md text-on-surface-variant leading-relaxed">
-            在这个算法狂飙、信息过载的数字时代，充斥着无休止的信息推送与臃肿繁复的小工具。<strong>「春日小筑 (Spring Nest)」</strong> 正是为逃离那些喧嚣而筑成的数字温暖栖息地。我们致力于回归工具的核心本质，以极致美学设计，陪伴您静心享受生活与工作。
+            在这个算法纷呈、信息过载的喧嚣时代，每日的指尖流转中充斥着太多无序的推送与过度设计的冗繁应用。<strong>「春日小筑 (Spring Nest)」</strong> 是一方为您用心精筑的雅致工具港湾。我们深信，日常使用的工具不应当是碎片化注意力的掠夺者，而应当是以极致美感滋养心智的静谧助手。
           </p>
-        </div>
-
-        {/* Core Philosophy: Data Sync and Privacy (The core part requested) */}
-        <div className="space-y-4 text-justify bg-surface-container-lowest border border-outline-variant/30 p-5 rounded-[24px] relative overflow-hidden shadow-sm">
-          <div className="absolute -top-10 -right-10 w-24 h-24 bg-primary/5 rounded-full blur-xl"></div>
-          
-          <h3 className="text-title-md font-bold text-on-surface flex items-center gap-2">
-            <Shield className="w-4.5 h-4.5 text-primary" strokeWidth={2.5} />
-            云端协同与绝对隐私守护
-          </h3>
-          
-          <p className="text-body-sm text-on-surface-variant leading-relaxed">
-            春日小筑<strong>并非孤立封闭的本地纯单机应用</strong>。为了带给您真正自由流畅、不惧设备损毁的体验，我们设计了轻量高效的<strong>云端加密备份、实时天气同步、以及多端共享账本</strong>等网络云协同能力。
+          <p className="text-body-md text-on-surface-variant leading-relaxed">
+            为此，我们倾注心血为您雕琢了这里的每一个界面切片、每一抹明暗过渡与每一丝微小的丝滑微动效。无论是随性的灵记手账、专注的番茄漏斗、亦或是清朗的灵感标签，每一次开启都旨在伴您安享当下、悠然生活。
           </p>
-          
-          <div className="p-3.5 bg-surface rounded-xl border border-outline-variant/15 flex gap-3 items-start">
-            <Lock className="w-4.5 h-4.5 text-emerald-600 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <span className="text-xs font-bold text-on-surface block">🔒 我们始终坚守的安全隐私底线：</span>
-              <p className="text-[11px] text-on-surface-variant leading-relaxed">
-                您的所有上传数据，皆经端对端加密通道传输至受严格防护的安全数据云。除您个人授权的数据所有权外，<strong>绝无任何第三方能够访问、刺探您的账目和日记</strong>。我们承诺永久：拒绝广告投放、拒绝用户商业画像交易、严控所有网络遥测。
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* Core Design Pillars */}
         <div className="space-y-3 pt-1">
           <h3 className="text-title-md font-bold text-on-surface border-l-3 border-primary pl-2.5 flex items-center gap-2">
             <Server className="w-4 h-4 text-primary" />
-            核心三大匠心信条
+            核心两大美学信条
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
             <div className="p-4 rounded-2xl bg-surface-container flex flex-col gap-1.5 border border-outline-variant/20 hover:border-slate-300 transition-colors">
               <span className="font-bold text-on-surface text-sm flex items-center gap-1.5">
-                <span className="text-primary text-base">✦</span> 匠心美学设计
+                <span className="text-primary text-base">✦</span> 匠心至臻美学
               </span>
               <p className="text-on-surface-variant leading-normal text-[11px]">
-                精心调和柔和的 off-white 灰白色温与灰炭色调，绝无庸俗纷乱的高饱和渐变，完美承载契合高审美用户的沉浸式呼吸气场。
+                精心打磨温润如纸的 off-white 灰白色温与灰炭色阶，摒弃毫无情绪的刺眼冷光，呈现恰到其份的典雅工艺视觉张力。
               </p>
             </div>
             <div className="p-4 rounded-2xl bg-surface-container flex flex-col gap-1.5 border border-outline-variant/20 hover:border-slate-300 transition-colors">
               <span className="font-bold text-on-surface text-sm flex items-center gap-1.5">
-                <span className="text-primary text-base">✦</span> 极简纯净无打扰
+                <span className="text-primary text-base">✦</span> 纯粹自如无扰
               </span>
               <p className="text-on-surface-variant leading-normal text-[11px]">
-                没有后台推送欺诈，没有开屏弹窗。工具被调用时尽显卓越，闲显时安分清净，绝不占用一分一秒本该属于您思索的宝贵视线。
+                绝无侵入式的广告打扰，没有喋喋不休的后台推送。调用时精准、卓越而可靠，闲置时安分、静下且绝不平添一分喧杂。
               </p>
             </div>
           </div>
@@ -333,7 +311,7 @@ function AboutScreen({ onClose }: { onClose: () => void }) {
         <div className="flex flex-col sm:flex-row gap-3 justify-between items-center text-[10px] text-on-surface-variant tracking-wider font-semibold">
           <span className="flex items-center gap-1">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-            安宁 · 优美 · 坚韧安全
+            安宁 · 优美 · 数据通道强安全级防护
           </span>
           <span className="font-mono">© 2026 Spring Nest · Powered by React & TLS 1.3</span>
         </div>
@@ -1031,7 +1009,7 @@ function ProfileTab({
             icon={Info}
             iconBg="bg-surface-variant text-on-surface-variant"
             title="关于春日小筑"
-            subtitle="极简数字避难所 · 版本 1.0.0"
+            subtitle="高致美学工具家园 · 版本 1.0.0"
             hasArrow
             onClick={onOpenAbout}
           />

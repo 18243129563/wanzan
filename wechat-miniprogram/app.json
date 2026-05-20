@@ -3,7 +3,8 @@
     "pages/discover/discover",
     "pages/development/development",
     "pages/efficiency/efficiency",
-    "pages/profile/profile"
+    "pages/profile/profile",
+    "pages/tool/tool"
   ],
   "window": {
     "backgroundTextStyle": "light",
