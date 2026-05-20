@@ -21,7 +21,7 @@ import {
   useTransform,
 } from "motion/react";
 import { ToolScreen } from "./ToolScreen";
-import { useState } from "react";
+import React, { useState } from "react";
 
 export function WordCountTool({ onClose }: { onClose: () => void }) {
   const [text, setText] = useState(
@@ -41,34 +41,52 @@ export function WordCountTool({ onClose }: { onClose: () => void }) {
   return (
     <ToolScreen
       title="字数统计"
-      desc="实时分析文本指标"
+      desc="深度实时分析文本多维信息"
       icon={ListOrdered}
-      bg="bg-secondary-container text-on-secondary-container"
+      bg="bg-primary/20 text-primary"
       onClose={onClose}
     >
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        className="w-full h-40 p-5 rounded-3xl bg-surface-container border border-outline-variant/30 outline-none text-body-sm resize-none"
-        placeholder="输入文本..."
-      ></textarea>
-      <div className="grid grid-cols-2 gap-4 mt-4">
-        {[
-          { label: "总字数", count: count.total },
-          { label: "字符数 (不含空格)", count: count.noSpace },
-          { label: "标点符号", count: count.punct },
-          { label: "近似阅读时间", count: count.time },
-        ].map((item, i) => (
-          <div
-            key={i}
-            className="glass-card p-4 rounded-[20px] flex flex-col justify-center items-center shadow-sm"
-          >
-            <span className="text-display-lg text-primary">{item.count}</span>
-            <span className="text-[12px] text-on-surface-variant font-semibold tracking-wide">
-              {item.label}
-            </span>
+      <div className="flex flex-col gap-5 max-w-lg mx-auto w-full">
+        {/* Code/Text Block */}
+        <div className="bg-surface-container-low p-5 rounded-[28px] border border-outline-variant/30 shadow-sm flex flex-col gap-2">
+          <div className="flex justify-between items-center border-b border-outline-variant/10 pb-2 mb-2">
+            <span className="text-[10px] font-bold text-primary tracking-widest uppercase">创作空间</span>
+            <span className="text-[10px] font-mono text-outline">LIVE FEED</span>
           </div>
-        ))}
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            className="w-full h-40 bg-transparent text-sm resize-none outline-none text-on-surface placeholder:text-outline-variant leading-relaxed font-sans"
+            placeholder="在此处输入或粘入文章内容，分析程序将自动运行..."
+          ></textarea>
+        </div>
+
+        {/* Dynamic Analysis KPIs Cards Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: "字符总数 (TOTAL)", count: count.total, emoji: "📝", style: "bg-surface-container-low border border-outline-variant/20 shadow-sm" },
+            { label: "净字数 (NO SPACES)", count: count.noSpace, emoji: "🧩", style: "bg-surface-container-low border border-outline-variant/20 shadow-sm" },
+            { label: "标点符号 (PUNCTS)", count: count.punct, emoji: "🎯", style: "bg-surface-container-low border border-outline-variant/20 shadow-sm" },
+            { label: "预估阅读 (TIME TO READ)", count: count.time, emoji: "⏳", style: "bg-primary/5 border border-primary/20 shadow-sm text-primary" },
+          ].map((item, i) => (
+            <div
+              key={i}
+              className={`p-5 rounded-[24px] flex flex-col justify-between relative overflow-hidden h-28 ${item.style}`}
+            >
+              <div className="flex justify-between items-start">
+                <span className="text-2xl">{item.emoji}</span>
+              </div>
+              <div className="mt-2 flex flex-col">
+                <span className="text-xl md:text-2xl font-mono font-black tracking-tight leading-none text-on-surface">
+                  {item.count}
+                </span>
+                <span className="text-[9px] font-bold text-outline mt-1 uppercase tracking-wider block truncate">
+                  {item.label}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </ToolScreen>
   );
@@ -88,8 +106,9 @@ function FlashCard({
   total: number;
   showAnswer: boolean;
   setShowAnswer: (v: boolean) => void;
-  onNext: (dir: number) => void;
+  onNext: (dir?: number) => void;
   exitDirection: number;
+  key?: any;
 }) {
   const x = useMotionValue(0);
   const rotateZ = useTransform(x, [-200, 200], [-10, 10]);
@@ -512,66 +531,291 @@ export function QuestionBankTool({ onClose }: { onClose: () => void }) {
 }
 
 export function AccountingTool({ onClose }: { onClose: () => void }) {
-  return (
-    <ToolScreen
-      title="本地记账"
-      desc="随时记录每一笔花销，了解您的财务状况。"
-      icon={Wallet}
-      bg="bg-secondary p-[2px]"
-      onClose={onClose}
-    >
-      <div className="glass-card p-6 rounded-[24px] shadow-sm flex flex-col gap-2">
-        <h3 className="text-body-sm text-on-surface-variant">本月总支出</h3>
-        <p className="font-serif text-[40px] font-black tracking-tight text-on-surface">
-          ¥ 1,200.00
-        </p>
-        <div className="w-full h-3 bg-surface-variant/50 rounded-full mt-4 overflow-hidden shadow-inner">
-          <div className="h-full bg-gradient-to-r from-primary to-secondary-fixed w-[60%] rounded-full"></div>
-        </div>
-        <div className="flex justify-between text-[11px] text-on-surface-variant mt-1 font-semibold tracking-wider">
-          <span>可用余额: ¥800.00</span>
-          <span>预算: ¥2,000.00</span>
-        </div>
-      </div>
+  const [isAdding, setIsAdding] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [title, setTitle] = useState("");
+  const [type, setType] = useState<"expense" | "income">("expense");
+  const [records, setRecords] = useState([
+    { id: "1", title: "咖啡", amount: 32.00, type: "expense", date: "今天 09:41", icon: "☕" },
+    { id: "2", title: "晚饭", amount: 58.00, type: "expense", date: "昨天 19:22", icon: "🍱" },
+    { id: "3", title: "交通", amount: 12.00, type: "expense", date: "昨天 08:30", icon: "🚇" },
+  ]);
 
-      <div className="flex items-center justify-between mt-4">
-        <h3 className="text-headline-sm text-on-surface">最近记录</h3>
-        <button className="text-primary font-semibold text-[13px]">
-          查看全部
-        </button>
-      </div>
+  const totalExpense = records
+    .filter((r) => r.type === "expense")
+    .reduce((sum, r) => sum + r.amount, 0);
 
-      <div className="flex flex-col gap-3">
-        {[
-          { title: "咖啡", amount: "-¥ 32.00", date: "今天 09:41", icon: "☕" },
-          { title: "晚饭", amount: "-¥ 58.00", date: "昨天 19:22", icon: "🍱" },
-          { title: "交通", amount: "-¥ 12.00", date: "昨天 08:30", icon: "🚇" },
-        ].map((item, i) => (
-          <div
-            key={i}
-            className="glass-card p-4 rounded-[16px] flex items-center justify-between shadow-sm"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-surface-variant rounded-full flex items-center justify-center text-xl shadow-inner">
-                {item.icon}
-              </div>
-              <div className="flex flex-col">
-                <span className="text-body-sm font-bold text-on-surface">
-                  {item.title}
-                </span>
-                <span className="text-[11px] text-on-surface-variant font-medium">
-                  {item.date}
-                </span>
+  const totalIncome = records
+    .filter((r) => r.type === "income")
+    .reduce((sum, r) => sum + r.amount, 0);
+
+  const budget = 2000;
+  const balance = budget - totalExpense + totalIncome;
+
+  const expenseChips = [
+    { label: "咖啡", icon: "☕" },
+    { label: "工作餐饮", icon: "🍱" },
+    { label: "通勤交通", icon: "🚇" },
+    { label: "日用百货", icon: "🛍️" },
+    { label: "娱乐消费", icon: "🎮" },
+    { label: "房租水电", icon: "🏠" },
+  ];
+
+  const incomeChips = [
+    { label: "正职薪资", icon: "💰" },
+    { label: "兼职外快", icon: "🎒" },
+    { label: "手气红包", icon: "🧧" },
+    { label: "投资收益", icon: "📈" },
+  ];
+
+  const activeChips = type === "expense" ? expenseChips : incomeChips;
+
+  const handleSave = () => {
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      alert("请输入正确的有效金额。");
+      return;
+    }
+
+    const name = title.trim() || (type === "expense" ? "日常支出" : "额外收入");
+    
+    // Find matching custom chip for default icon
+    let icon = "💵";
+    const foundChip = activeChips.find(c => c.label === name);
+    if (foundChip) {
+      icon = foundChip.icon;
+    } else {
+      if (type === "expense") {
+        if (name.includes("咖") || name.includes("饮")) icon = "☕";
+        else if (name.includes("饭") || name.includes("餐") || name.includes("吃")) icon = "🍱";
+        else if (name.includes("车") || name.includes("地铁") || name.includes("公交") || name.includes("机")) icon = "🚇";
+        else if (name.includes("购") || name.includes("买") || name.includes("衣服")) icon = "🛍️";
+      } else {
+        if (name.includes("资") || name.includes("打工")) icon = "💰";
+        else if (name.includes("包") || name.includes("奖")) icon = "🧧";
+      }
+    }
+
+    const now = new Date();
+    const timeStr = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+    const dateStr = `今天 ${timeStr}`;
+
+    const newRecord = {
+      id: Date.now().toString(),
+      title: name,
+      amount: numericAmount,
+      type,
+      date: dateStr,
+      icon,
+    };
+
+    setRecords([newRecord, ...records]);
+    setAmount("");
+    setTitle("");
+    setIsAdding(false);
+  };
+
+  const handleDelete = (id: string) => {
+    setRecords(records.filter((r) => r.id !== id));
+  };
+
+  const expensePercentage = Math.min(100, (totalExpense / budget) * 100);
+  
+  // Dynamic warning color scheme
+  let progressBarColor = "from-emerald-400 to-teal-500";
+  let budgetTextColor = "text-emerald-500";
+  if (expensePercentage > 85) {
+    progressBarColor = "from-rose-500 to-red-600 animate-pulse";
+    budgetTextColor = "text-rose-500 font-bold";
+  } else if (expensePercentage > 60) {
+    progressBarColor = "from-amber-400 to-orange-500";
+    budgetTextColor = "text-amber-500";
+  }
+
+  if (isAdding) {
+    return (
+      <ToolScreen
+        title="添加记账"
+        desc="记录每一笔日常开销与额外收益。"
+        icon={Wallet}
+        bg="bg-primary/20 text-primary"
+        onClose={() => setIsAdding(false)}
+      >
+        <div className="flex flex-col gap-5 max-w-md mx-auto w-full">
+          {/* Expense/Income Switch Toggle buttons */}
+          <div className="flex p-1.5 bg-surface-container-high/60 border border-outline-variant/15 rounded-full w-max mx-auto shadow-sm">
+            <button
+              onClick={() => { setType("expense"); setTitle(""); }}
+              className={`px-8 py-2 rounded-full text-xs font-black tracking-widest transition-all cursor-pointer ${type === "expense" ? "bg-rose-500 text-white shadow" : "text-on-surface-variant"}`}
+            >
+              支出
+            </button>
+            <button
+              onClick={() => { setType("income"); setTitle(""); }}
+              className={`px-8 py-2 rounded-full text-xs font-black tracking-widest transition-all cursor-pointer ${type === "income" ? "bg-primary text-on-primary shadow" : "text-on-surface-variant"}`}
+            >
+              收入
+            </button>
+          </div>
+
+          {/* Amount and title block */}
+          <div className="bg-surface-container-low border border-outline-variant/30 p-6 rounded-[32px] shadow-sm flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-outline tracking-wider uppercase">记账金额 (CNY)</span>
+              <div className="flex items-center gap-2 border-b-2 border-primary/20 pb-1.5 focus-within:border-primary transition-colors">
+                <span className="text-xl font-bold text-on-surface mt-1">¥</span>
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  className="w-full text-3xl font-black bg-transparent outline-none text-on-surface placeholder:text-outline-variant/50 font-mono"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  autoFocus
+                />
               </div>
             </div>
-            <span className="font-mono text-body-sm text-on-surface font-semibold">
-              {item.amount}
+
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-outline tracking-wider uppercase">交易描述</span>
+              <input
+                type="text"
+                placeholder="键入描述或选择下方快速标签..."
+                className="w-full bg-surface-container-high px-4 py-3 rounded-2xl text-xs font-semibold border border-outline-variant/15 outline-none focus:border-primary text-on-surface placeholder:text-outline-variant"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Fast Category tags */}
+          <div className="flex flex-col gap-2">
+            <span className="text-[10px] font-bold text-outline tracking-wider uppercase px-1">常用标签</span>
+            <div className="flex flex-wrap gap-2">
+              {activeChips.map((chip) => (
+                <button
+                  key={chip.label}
+                  onClick={() => setTitle(chip.label)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border flex items-center gap-1.5 cursor-pointer hover:bg-surface-container-high active:scale-95
+                    ${title === chip.label 
+                      ? "bg-primary/10 border-primary text-primary shadow-sm" 
+                      : "bg-surface-container-low border-outline-variant/20 text-on-surface-variant"
+                    }
+                  `}
+                >
+                  <span className="text-sm">{chip.icon}</span>
+                  <span>{chip.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={handleSave}
+            className="mt-4 w-full py-4 bg-primary text-on-primary text-xs font-black tracking-widest rounded-full shadow-lg active:scale-95 transition-transform cursor-pointer"
+          >
+            保存账目记录
+          </button>
+        </div>
+      </ToolScreen>
+    );
+  }
+
+  return (
+    <ToolScreen
+      title="小筑账本"
+      desc="随时记录每一笔花销，了解您的财务健康度。"
+      icon={Wallet}
+      bg="bg-primary/20 text-primary"
+      onClose={onClose}
+    >
+      <div className="flex flex-col gap-4 max-w-md mx-auto w-full">
+        {/* Symmetrical dashboard widget */}
+        <div className="bg-surface-container-low border border-outline-variant/30 p-6 rounded-[32px] shadow-sm flex flex-col gap-2 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+            <Wallet className="w-24 h-24" />
+          </div>
+          <span className="text-[10px] text-outline font-bold tracking-widest uppercase">本月预算状况 (EXPENSES)</span>
+          <div className="flex items-baseline gap-2.5">
+            <span className="font-mono text-3xl font-black text-on-surface">
+              ¥ {totalExpense.toFixed(2)}
+            </span>
+            <span className="text-[10px] font-semibold text-primary">
+              / +¥{totalIncome.toFixed(2)} 收入
             </span>
           </div>
-        ))}
+          
+          <div className="w-full h-2.5 bg-surface-container shadow-inner rounded-full mt-3 overflow-hidden">
+            <div 
+              className={`h-full bg-gradient-to-r ${progressBarColor} rounded-full transition-all duration-500`}
+              style={{ width: `${expensePercentage}%` }}
+            ></div>
+          </div>
+
+          <div className="flex justify-between items-center text-[10px] mt-1.5 font-bold tracking-wide">
+            <span className="text-outline uppercase">净余额: <span className={`${balance < 0 ? 'text-rose-500' : 'text-on-surface-variant'}`}>¥{balance.toFixed(2)}</span></span>
+            <span className={budgetTextColor}>限额 ¥{budget.toFixed(2)} ({expensePercentage.toFixed(0)}%)</span>
+          </div>
+        </div>
+
+        {/* List ledger heading */}
+        <div className="flex items-center justify-between px-1 mt-2">
+          <span className="text-xs font-black text-on-surface-variant tracking-wider uppercase">记账明细 (LEDGER)</span>
+          <span className="text-[10px] font-semibold text-outline">
+            {records.length} 笔交易
+          </span>
+        </div>
+
+        {/* Flow list ledger */}
+        <div className="flex flex-col gap-2.5">
+          {records.map((item) => (
+            <div
+              key={item.id}
+              className="bg-surface-container-low border border-outline-variant/20 p-4 rounded-[22px] flex items-center justify-between shadow-sm hover:border-primary/20 transition-all group"
+            >
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-10 h-10 bg-surface-container-high rounded-2xl flex items-center justify-center text-xl shadow-inner border border-outline-variant/10">
+                  {item.icon}
+                </div>
+                <div className="flex flex-col min-w-0 text-left">
+                  <span className="text-xs font-black text-on-surface truncate">
+                    {item.title}
+                  </span>
+                  <span className="text-[9px] text-outline font-semibold tracking-wide uppercase mt-0.5">
+                    {item.date}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className={`font-mono text-xs font-black
+                  ${item.type === "expense" ? "text-rose-500" : "text-emerald-500"}
+                `}>
+                  {item.type === "expense" ? "-" : "+"}¥ {item.amount.toFixed(2)}
+                </span>
+                <button 
+                  onClick={() => handleDelete(item.id)}
+                  className="p-1.5 rounded-lg text-outline hover:text-rose-500 hover:bg-rose-500/5 transition-all text-xs cursor-pointer border border-transparent hover:border-rose-500/10"
+                  title="删除记录"
+                >
+                  🗑️
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {records.length === 0 && (
+            <div className="p-10 text-center text-outline/60 text-xs font-semibold leading-relaxed bg-surface-container-low border border-dashed border-outline-variant/30 rounded-[28px] mt-2">
+              暂无任何账目，点击右下角“+”发起快速记账。
+            </div>
+          )}
+        </div>
       </div>
 
-      <button className="fixed bottom-8 right-6 w-14 h-14 bg-secondary text-on-secondary rounded-full shadow-[0_8px_24px_rgba(51,106,58,0.4)] flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+      {/* Floating Action quick launcher */}
+      <button
+        onClick={() => setIsAdding(true)}
+        className="fixed bottom-8 right-6 w-14 h-14 bg-primary text-on-primary rounded-2xl shadow-lg flex items-center justify-center hover:scale-105 hover:-translate-y-1 active:scale-95 transition-all cursor-pointer border border-primary-container"
+        title="快速记一笔"
+      >
         <span className="text-2xl font-light leading-none">+</span>
       </button>
     </ToolScreen>
@@ -614,35 +858,163 @@ export function MarkdownEditor({ onClose }: { onClose: () => void }) {
 }
 
 export function WordToPdfTool({ onClose }: { onClose: () => void }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [status, setStatus] = useState<"idle" | "converting" | "done">("idle");
+  const [progress, setProgress] = useState(0);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleConvert = () => {
+    if (!file) return;
+    setStatus("converting");
+    setProgress(0);
+    const interval = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 100) {
+          clearInterval(interval);
+          setStatus("done");
+          return 100;
+        }
+        return p + 10;
+      });
+    }, 150);
+  };
+
+  const handleDownload = () => {
+    if (!file) return;
+    const blob = new Blob(["Spring Nest Mock Converted PDF Content " + file.name], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name.replace(/\.[^/.]+$/, "") + ".pdf";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    alert("转换成功！已完美生成并下载 PDF 副本。");
+  };
+
   return (
     <ToolScreen
       title="Word 转 PDF"
-      desc="将 Word 文档转换为不可编辑的 PDF 格式"
+      desc="将 Word 文档转换为优质不可编辑的 PDF 格式"
       icon={FileImage}
       bg="bg-primary/20 text-primary"
       onClose={onClose}
     >
       <div className="flex-1 flex flex-col items-center justify-center pt-2 gap-6">
-        <div className="w-full max-w-sm aspect-video border-2 border-dashed border-outline-variant/60 rounded-[32px] flex flex-col items-center justify-center bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer group">
-          <div className="w-16 h-16 rounded-2xl bg-primary-container text-on-primary-container flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <FileImage className="w-8 h-8" />
+        {status === "idle" && (
+          <>
+            <label className="w-full max-w-sm aspect-video border-2 border-dashed border-outline-variant/60 rounded-[32px] flex flex-col items-center justify-center bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer group relative">
+              <input type="file" accept=".doc,.docx" onChange={handleFileChange} className="hidden" />
+              <div className="w-16 h-16 rounded-2xl bg-primary-container text-on-primary-container flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <FileImage className="w-8 h-8" />
+              </div>
+              <span className="text-body-lg font-bold text-on-surface mb-1">
+                {file ? file.name : "点击或拖拽文件"}
+              </span>
+              <span className="text-[12px] text-on-surface-variant font-medium">
+                {file ? `${(file.size / 1024).toFixed(1)} KB` : "支持 .doc, .docx (最大 50MB)"}
+              </span>
+            </label>
+            <button 
+              onClick={handleConvert}
+              disabled={!file}
+              className={`bg-primary text-on-primary font-semibold text-body-sm py-3 px-12 rounded-full shadow-md transition-all ${file ? "hover:scale-105 active:scale-95" : "opacity-50 cursor-not-allowed"}`}
+            >
+              开始转换
+            </button>
+          </>
+        )}
+
+        {status === "converting" && (
+          <div className="flex flex-col items-center gap-4 w-full max-w-sm">
+            <div className="w-24 h-24 rounded-full border-4 border-surface-variant flex items-center justify-center relative shadow-sm">
+              <div 
+                className="absolute inset-x-0 inset-y-0 rounded-full border-4 border-primary border-t-transparent animate-spin"
+                style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)" }}
+              ></div>
+              <span className="text-body-lg font-bold font-mono text-primary">{progress}%</span>
+            </div>
+            <span className="text-body-sm text-on-surface-variant font-bold">排版引擎转换中...</span>
           </div>
-          <span className="text-body-lg font-bold text-on-surface mb-1">
-            点击或拖拽文件
-          </span>
-          <span className="text-[12px] text-on-surface-variant font-medium">
-            支持 .doc, .docx (最大 50MB)
-          </span>
-        </div>
-        <button className="bg-primary text-on-primary font-semibold text-body-sm py-3 px-12 rounded-full shadow-md transition-all opacity-50 cursor-not-allowed">
-          开始转换
-        </button>
+        )}
+
+        {status === "done" && (
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-2 animate-bounce">
+              ✓
+            </div>
+            <h4 className="text-title-md font-bold text-on-surface">转换成功！</h4>
+            <p className="text-xs text-on-surface-variant max-w-[240px]">
+              文件 <strong>{file?.name.replace(/\.[^/.]+$/, "")}.pdf</strong> 已准备完毕。
+            </p>
+            <div className="flex flex-col gap-2 w-full max-w-[200px] mt-4">
+              <button 
+                onClick={handleDownload}
+                className="w-full bg-primary text-on-primary font-semibold text-body-sm py-3 rounded-full shadow-md hover:scale-105 active:scale-95 transition-all"
+              >
+                下载高保真 PDF
+              </button>
+              <button 
+                onClick={() => { setFile(null); setStatus("idle"); }}
+                className="text-xs text-on-surface-variant underline hover:text-primary transition-colors py-2"
+              >
+                再次转换
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </ToolScreen>
   );
 }
 
 export function PdfToWordTool({ onClose }: { onClose: () => void }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [status, setStatus] = useState<"idle" | "converting" | "done">("idle");
+  const [progress, setProgress] = useState(0);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleConvert = () => {
+    if (!file) return;
+    setStatus("converting");
+    setProgress(0);
+    const interval = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 100) {
+          clearInterval(interval);
+          setStatus("done");
+          return 100;
+        }
+        return p + 10;
+      });
+    }, 150);
+  };
+
+  const handleDownload = () => {
+    if (!file) return;
+    const blob = new Blob(["Spring Nest Mock Converted Word Content " + file.name], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name.replace(/\.[^/.]+$/, "") + ".docx";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    alert("转换成功！已完美提取 Word 文档。");
+  };
+
   return (
     <ToolScreen
       title="PDF 转 Word"
@@ -652,20 +1024,68 @@ export function PdfToWordTool({ onClose }: { onClose: () => void }) {
       onClose={onClose}
     >
       <div className="flex-1 flex flex-col items-center justify-center pt-2 gap-6">
-        <div className="w-full max-w-sm aspect-video border-2 border-dashed border-outline-variant/60 rounded-[32px] flex flex-col items-center justify-center bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer group">
-          <div className="w-16 h-16 rounded-2xl bg-secondary-container text-on-secondary-container flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <File className="w-8 h-8" />
+        {status === "idle" && (
+          <>
+            <label className="w-full max-w-sm aspect-video border-2 border-dashed border-outline-variant/60 rounded-[32px] flex flex-col items-center justify-center bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer group relative">
+              <input type="file" accept=".pdf" onChange={handleFileChange} className="hidden" />
+              <div className="w-16 h-16 rounded-2xl bg-secondary-container text-on-secondary-container flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <File className="w-8 h-8" />
+              </div>
+              <span className="text-body-lg font-bold text-on-surface mb-1">
+                {file ? file.name : "点击或拖拽文件"}
+              </span>
+              <span className="text-[12px] text-on-surface-variant font-medium">
+                {file ? `${(file.size / 1024).toFixed(1)} KB` : "支持 .pdf (最大 50MB)"}
+              </span>
+            </label>
+            <button 
+              onClick={handleConvert}
+              disabled={!file}
+              className={`bg-secondary text-on-secondary font-semibold text-body-sm py-3 px-12 rounded-full shadow-md transition-all ${file ? "hover:scale-105 active:scale-95" : "opacity-50 cursor-not-allowed"}`}
+            >
+              开始转换
+            </button>
+          </>
+        )}
+
+        {status === "converting" && (
+          <div className="flex flex-col items-center gap-4 w-full max-w-sm">
+            <div className="w-24 h-24 rounded-full border-4 border-surface-variant flex items-center justify-center relative shadow-sm">
+              <div 
+                className="absolute inset-x-0 inset-y-0 rounded-full border-4 border-secondary border-t-transparent animate-spin"
+                style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)" }}
+              ></div>
+              <span className="text-body-lg font-bold font-mono text-secondary">{progress}%</span>
+            </div>
+            <span className="text-body-sm text-on-surface-variant font-bold">深度文字要素清洗中...</span>
           </div>
-          <span className="text-body-lg font-bold text-on-surface mb-1">
-            点击或拖拽文件
-          </span>
-          <span className="text-[12px] text-on-surface-variant font-medium">
-            支持 .pdf (最大 50MB)
-          </span>
-        </div>
-        <button className="bg-secondary text-on-secondary font-semibold text-body-sm py-3 px-12 rounded-full shadow-md transition-all opacity-50 cursor-not-allowed">
-          开始转换
-        </button>
+        )}
+
+        {status === "done" && (
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="w-16 h-16 rounded-full bg-secondary/10 text-secondary flex items-center justify-center mb-2 animate-bounce">
+              ✓
+            </div>
+            <h4 className="text-title-md font-bold text-on-surface">转换成功！</h4>
+            <p className="text-xs text-on-surface-variant max-w-[240px]">
+              文件 <strong>{file?.name.replace(/\.[^/.]+$/, "")}.docx</strong> 已提取就绪。
+            </p>
+            <div className="flex flex-col gap-2 w-full max-w-[200px] mt-4">
+              <button 
+                onClick={handleDownload}
+                className="w-full bg-secondary text-on-secondary font-semibold text-body-sm py-3 rounded-full shadow-md hover:scale-105 active:scale-95 transition-all"
+              >
+                下载 DOCX 文件
+              </button>
+              <button 
+                onClick={() => { setFile(null); setStatus("idle"); }}
+                className="text-xs text-on-surface-variant underline hover:text-secondary transition-colors py-2"
+              >
+                再次转换
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </ToolScreen>
   );

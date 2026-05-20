@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { ToolRouter } from "./ToolRouter";
 import { LoginScreen } from "./LoginScreen";
 import { FavoritesScreen } from "./screens/FavoritesScreen";
@@ -49,6 +49,10 @@ import {
   File,
   Volume2,
   X,
+  Shield,
+  Lock,
+  EyeOff,
+  Server,
 } from "lucide-react";
 
 export default function App() {
@@ -57,6 +61,7 @@ export default function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userAvatar, setUserAvatar] = useState(
     "https://api.dicebear.com/7.x/notionists/svg?seed=Mimi&backgroundColor=e6f4ea",
@@ -106,6 +111,7 @@ export default function App() {
                 onOpenHistory={() => setShowHistory(true)}
                 userAvatar={userAvatar}
                 setUserAvatar={setUserAvatar}
+                onOpenAbout={() => setShowAbout(true)}
               />
             )}
           </AnimatePresence>
@@ -184,7 +190,155 @@ export default function App() {
           />
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {showAbout && (
+          <AboutScreen
+            onClose={() => setShowAbout(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
+  );
+}
+
+function AboutScreen({ onClose }: { onClose: () => void }) {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { duration: 0.3 }
+    },
+    exit: { 
+      opacity: 0,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const modalVariants = {
+    hidden: { y: 100, opacity: 0, scale: 0.95 },
+    visible: { 
+      y: 0, 
+      opacity: 1, 
+      scale: 1,
+      transition: { type: "spring", damping: 25, stiffness: 350 }
+    },
+    exit: { 
+      y: 50, 
+      opacity: 0, 
+      scale: 0.95,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  return (
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="fixed inset-0 bg-surface-dim/75 backdrop-blur-md z-[70] flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        variants={modalVariants}
+        className="w-full max-w-xl bg-surface border border-outline-variant/30 rounded-[32px] p-6 md:p-8 shadow-2xl overflow-y-auto max-h-[85vh] flex flex-col gap-6 relative"
+        onClick={e => e.stopPropagation()}
+      >
+        <button 
+          onClick={onClose}
+          className="absolute top-6 right-6 w-10 h-10 rounded-full bg-surface-container hover:bg-surface-variant flex items-center justify-center text-on-surface-variant transition-colors active:scale-95 cursor-pointer z-10"
+          title="关闭"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Brand Header */}
+        <div className="flex flex-col items-center text-center mt-4">
+          <div className="w-16 h-16 rounded-3xl bg-primary/10 text-primary flex items-center justify-center mb-4 shadow-inner relative overflow-hidden">
+            <Leaf className="w-9 h-9 fill-primary text-primary animate-[pulse_3s_infinite]" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent pointer-events-none"></div>
+          </div>
+          <h2 className="text-display-md font-black text-primary tracking-tight font-serif">春日小筑</h2>
+          <span className="text-body-sm text-on-surface-variant font-bold tracking-widest uppercase mt-1">Spring Nest · 高致美学数字家园</span>
+          <p className="text-[10px] font-mono text-outline font-semibold uppercase mt-0.5 px-3 py-0.5 bg-surface-container-high rounded-full border border-outline-variant/20">V1.0.0 Stable Release</p>
+        </div>
+
+        <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-outline-variant/40 to-transparent"></div>
+
+        {/* Narrative Section */}
+        <div className="space-y-4 text-justify">
+          <h3 className="text-title-md font-bold text-on-surface flex items-center gap-2 border-l-3 border-primary pl-2.5">
+            <Leaf className="w-4 h-4 text-primary fill-current" />
+            小筑诞生之初
+          </h3>
+          <p className="text-body-md text-on-surface-variant leading-relaxed">
+            在这个算法狂飙、信息过载的数字时代，充斥着无休止的信息推送与臃肿繁复的小工具。<strong>「春日小筑 (Spring Nest)」</strong> 正是为逃离那些喧嚣而筑成的数字温暖栖息地。我们致力于回归工具的核心本质，以极致美学设计，陪伴您静心享受生活与工作。
+          </p>
+        </div>
+
+        {/* Core Philosophy: Data Sync and Privacy (The core part requested) */}
+        <div className="space-y-4 text-justify bg-surface-container-lowest border border-outline-variant/30 p-5 rounded-[24px] relative overflow-hidden shadow-sm">
+          <div className="absolute -top-10 -right-10 w-24 h-24 bg-primary/5 rounded-full blur-xl"></div>
+          
+          <h3 className="text-title-md font-bold text-on-surface flex items-center gap-2">
+            <Shield className="w-4.5 h-4.5 text-primary" strokeWidth={2.5} />
+            云端协同与绝对隐私守护
+          </h3>
+          
+          <p className="text-body-sm text-on-surface-variant leading-relaxed">
+            春日小筑<strong>并非孤立封闭的本地纯单机应用</strong>。为了带给您真正自由流畅、不惧设备损毁的体验，我们设计了轻量高效的<strong>云端加密备份、实时天气同步、以及多端共享账本</strong>等网络云协同能力。
+          </p>
+          
+          <div className="p-3.5 bg-surface rounded-xl border border-outline-variant/15 flex gap-3 items-start">
+            <Lock className="w-4.5 h-4.5 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <span className="text-xs font-bold text-on-surface block">🔒 我们始终坚守的安全隐私底线：</span>
+              <p className="text-[11px] text-on-surface-variant leading-relaxed">
+                您的所有上传数据，皆经端对端加密通道传输至受严格防护的安全数据云。除您个人授权的数据所有权外，<strong>绝无任何第三方能够访问、刺探您的账目和日记</strong>。我们承诺永久：拒绝广告投放、拒绝用户商业画像交易、严控所有网络遥测。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Core Design Pillars */}
+        <div className="space-y-3 pt-1">
+          <h3 className="text-title-md font-bold text-on-surface border-l-3 border-primary pl-2.5 flex items-center gap-2">
+            <Server className="w-4 h-4 text-primary" />
+            核心三大匠心信条
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div className="p-4 rounded-2xl bg-surface-container flex flex-col gap-1.5 border border-outline-variant/20 hover:border-slate-300 transition-colors">
+              <span className="font-bold text-on-surface text-sm flex items-center gap-1.5">
+                <span className="text-primary text-base">✦</span> 匠心美学设计
+              </span>
+              <p className="text-on-surface-variant leading-normal text-[11px]">
+                精心调和柔和的 off-white 灰白色温与灰炭色调，绝无庸俗纷乱的高饱和渐变，完美承载契合高审美用户的沉浸式呼吸气场。
+              </p>
+            </div>
+            <div className="p-4 rounded-2xl bg-surface-container flex flex-col gap-1.5 border border-outline-variant/20 hover:border-slate-300 transition-colors">
+              <span className="font-bold text-on-surface text-sm flex items-center gap-1.5">
+                <span className="text-primary text-base">✦</span> 极简纯净无打扰
+              </span>
+              <p className="text-on-surface-variant leading-normal text-[11px]">
+                没有后台推送欺诈，没有开屏弹窗。工具被调用时尽显卓越，闲显时安分清净，绝不占用一分一秒本该属于您思索的宝贵视线。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-[1px] w-full bg-outline-variant/30"></div>
+
+        {/* Footer info */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-between items-center text-[10px] text-on-surface-variant tracking-wider font-semibold">
+          <span className="flex items-center gap-1">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+            安宁 · 优美 · 坚韧安全
+          </span>
+          <span className="font-mono">© 2026 Spring Nest · Powered by React & TLS 1.3</span>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -229,7 +383,7 @@ function NavItem({
 const MotionCard = motion.create("div");
 
 const containerVariants = {
-  hidden: { opacity: 0, filter: "blur(4px)", scale: 0.98, y: 8 },
+  hidden: { opacity: 0, filter: "blur(4px)", scale: 0.98, y: 15 },
   visible: {
     opacity: 1,
     filter: "blur(0px)",
@@ -237,10 +391,10 @@ const containerVariants = {
     y: 0,
     transition: {
       type: "spring",
-      stiffness: 260,
-      damping: 28,
-      staggerChildren: 0.08,
-      delayChildren: 0.05,
+      stiffness: 110,
+      damping: 20,
+      staggerChildren: 0.05,
+      delayChildren: 0.04,
     },
   },
   exit: {
@@ -248,18 +402,18 @@ const containerVariants = {
     filter: "blur(4px)",
     scale: 0.98,
     y: -8,
-    transition: { duration: 0.15, ease: "easeIn" },
+    transition: { duration: 0.25, ease: "easeInOut" },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, scale: 0.96, y: 15, filter: "blur(4px)" },
+  hidden: { opacity: 0, scale: 0.97, y: 12, filter: "blur(4px)" },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
     filter: "blur(0px)",
-    transition: { type: "spring", stiffness: 280, damping: 28 },
+    transition: { type: "spring", stiffness: 120, damping: 20 },
   },
 };
 
@@ -271,6 +425,7 @@ function DiscoverTab({
 }) {
   const [showAll, setShowAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
 
   const filteredTools = useMemo(() => {
     if (!searchQuery) return [];
@@ -291,26 +446,48 @@ function DiscoverTab({
       <motion.section variants={itemVariants} className="space-y-4">
         <h2 className="text-headline-md text-on-surface">发现</h2>
 
-        <div className="relative w-full pb-2">
-          <div className="absolute inset-y-0 left-0 pl-4 mb-2 flex items-center pointer-events-none">
-            <Search className="text-outline w-5 h-5" />
-          </div>
-          <input
-            type="text"
-            className="w-full h-12 pl-12 pr-12 bg-surface-container-high/60 backdrop-blur-md border border-white/20 rounded-[20px] text-body-md text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary focus:shadow-lg transition-shadow shadow-sm"
-            placeholder="搜索工具、小组件..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute inset-y-0 right-2 mb-2 w-10 h-12 flex items-center justify-center text-on-surface-variant/50 hover:text-on-surface transition-colors active:scale-95"
+        <motion.div 
+          animate={isFocused ? { scale: 1.015, y: -1 } : { scale: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          className="relative w-full pb-2"
+        >
+          {/* Glowing background light aura when active */}
+          <div className={`absolute -inset-1 blur-lg bg-gradient-to-r from-primary/20 via-primary-container/20 to-secondary/10 rounded-[24px] pointer-events-none transition-opacity duration-500 ${isFocused ? 'opacity-100' : 'opacity-0'}`}></div>
+          
+          <div className="relative flex items-center">
+            <motion.div 
+              animate={isFocused ? { scale: 1.1, x: 2, color: "var(--md-sys-color-primary, #2d6a4f)" } : { scale: 1, x: 0, color: "rgb(156, 163, 175)" }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="absolute left-4 z-10 flex items-center pointer-events-none"
             >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+              <Search className="w-5 h-5" />
+            </motion.div>
+            
+            <input
+              type="text"
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              className="w-full h-13 pl-12 pr-12 bg-surface-container-high/60 focus:bg-surface-container-highest backdrop-blur-md rounded-[22px] text-body-md text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary focus:shadow-lg transition-all shadow-sm border border-outline-variant/20 focus:border-primary/40 outline-none select-none"
+              placeholder="搜索感兴趣的精品小工具、生活指南..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            
+            <AnimatePresence>
+              {searchQuery && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant/70 hover:text-on-surface hover:bg-surface-variant transition-colors active:scale-90 z-10 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
       </motion.section>
 
       {searchQuery ? (
@@ -411,7 +588,7 @@ function DiscoverTab({
                 查看全部
               </button>
             </div>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {[
                 {
                   id: "notes",
@@ -430,12 +607,6 @@ function DiscoverTab({
                   name: "番茄钟",
                   icon: Timer,
                   color: "bg-tertiary-container text-on-tertiary-container",
-                },
-                {
-                  id: "converter",
-                  name: "换算",
-                  icon: ArrowRightLeft,
-                  color: "bg-surface-variant text-on-surface-variant",
                 },
               ].map((tool, i) => (
                 <MotionCard
@@ -757,6 +928,7 @@ function ProfileTab({
   onOpenHistory,
   userAvatar,
   setUserAvatar,
+  onOpenAbout,
 }: {
   onOpenLogin: () => void;
   isLoggedIn: boolean;
@@ -765,6 +937,7 @@ function ProfileTab({
   onOpenHistory: () => void;
   userAvatar: string;
   setUserAvatar: (url: string) => void;
+  onOpenAbout: () => void;
   key?: string;
 }) {
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -858,8 +1031,9 @@ function ProfileTab({
             icon={Info}
             iconBg="bg-surface-variant text-on-surface-variant"
             title="关于春日小筑"
-            subtitle="版本 1.0.0"
+            subtitle="极简数字避难所 · 版本 1.0.0"
             hasArrow
+            onClick={onOpenAbout}
           />
           {isLoggedIn && (
             <>
