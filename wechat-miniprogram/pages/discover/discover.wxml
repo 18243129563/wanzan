@@ -1,0 +1,19 @@
+<!--pages/discover/discover.wxml-->
+<view class="container">
+  <view class="section-title">发现</view>
+  
+  <view class="search-box">
+    <icon type="search" size="16" class="search-icon"></icon>
+    <input type="text" placeholder="搜索工具、小组件..." bindinput="onSearchInput" value="{{searchQuery}}" />
+  </view>
+
+  <view class="tool-grid">
+    <view class="tool-card" wx:for="{{filteredTools}}" wx:key="id" bindtap="onToolSelect" data-id="{{item.id}}">
+      <view class="tool-icon-wrapper">
+        <image class="tool-icon" src="../../assets/images/{{item.icon}}.png" mode="aspectFit"></image>
+      </view>
+      <text class="tool-name">{{item.name}}</text>
+      <text class="tool-desc">{{item.desc}}</text>
+    </view>
+  </view>
+</view>

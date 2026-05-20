@@ -1,0 +1,15 @@
+<!--pages/efficiency/efficiency.wxml-->
+<view class="container">
+  <view class="section-title">效率</view>
+  <view class="section-subtitle">打理您的任务，拓展您的知识。</view>
+  
+  <view class="tool-list">
+    <view class="tool-item" wx:for="{{tools}}" wx:key="id" bindtap="onToolSelect">
+      <view class="tool-item-icon bg-primary"></view>
+      <view class="tool-item-content">
+        <text class="tool-item-name">{{item.name}}</text>
+        <text class="tool-item-desc">{{item.desc}}</text>
+      </view>
+    </view>
+  </view>
+</view>

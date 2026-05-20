@@ -1,0 +1,57 @@
+/* pages/discover/discover.wxss */
+.search-box {
+  position: relative;
+  margin-bottom: 24px;
+}
+.search-box input {
+  height: 48px;
+  background-color: #E6EFE6;
+  border-radius: 24px;
+  padding: 0 48px;
+  font-size: 16px;
+}
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 10;
+}
+.tool-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.tool-card {
+  width: 48%;
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.tool-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  background: #E8F5E9;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.tool-icon {
+  width: 24px;
+  height: 24px;
+}
+.tool-name {
+  font-size: 16px;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 4px;
+}
+.tool-desc {
+  font-size: 12px;
+  color: #747878;
+  display: block;
+}

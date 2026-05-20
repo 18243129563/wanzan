@@ -229,7 +229,7 @@ function NavItem({
 const MotionCard = motion.create("div");
 
 const containerVariants = {
-  hidden: { opacity: 0, filter: "blur(4px)", scale: 0.96, y: 5 },
+  hidden: { opacity: 0, filter: "blur(4px)", scale: 0.98, y: 8 },
   visible: {
     opacity: 1,
     filter: "blur(0px)",
@@ -237,29 +237,29 @@ const containerVariants = {
     y: 0,
     transition: {
       type: "spring",
-      stiffness: 350,
-      damping: 25,
+      stiffness: 260,
+      damping: 28,
       staggerChildren: 0.08,
-      delayChildren: 0.03,
+      delayChildren: 0.05,
     },
   },
   exit: {
     opacity: 0,
     filter: "blur(4px)",
-    scale: 0.96,
-    y: -5,
-    transition: { duration: 0.2, ease: "easeOut" },
+    scale: 0.98,
+    y: -8,
+    transition: { duration: 0.15, ease: "easeIn" },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, scale: 0.85, y: 20, filter: "blur(4px)" },
+  hidden: { opacity: 0, scale: 0.96, y: 15, filter: "blur(4px)" },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
     filter: "blur(0px)",
-    transition: { type: "spring", stiffness: 450, damping: 20 },
+    transition: { type: "spring", stiffness: 280, damping: 28 },
   },
 };
 
@@ -297,7 +297,7 @@ function DiscoverTab({
           </div>
           <input
             type="text"
-            className="w-full h-12 pl-12 pr-12 bg-surface-container-high/60 backdrop-blur-md border border-white/20 rounded-[20px] text-body-md text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary focus:outline-none transition-shadow shadow-sm"
+            className="w-full h-12 pl-12 pr-12 bg-surface-container-high/60 backdrop-blur-md border border-white/20 rounded-[20px] text-body-md text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary focus:shadow-lg transition-shadow shadow-sm"
             placeholder="搜索工具、小组件..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
