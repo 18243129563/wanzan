@@ -676,6 +676,164 @@ export function QuestionBankTool({ onClose }: { onClose: () => void }) {
   const [examTimeRemaining, setExamTimeRemaining] = useState<number>(3600);
   const [examAnswers, setExamAnswers] = useState<Record<string, string>>({});
 
+  // Tab state for import view ('file' | 'manual')
+  const [importTab, setImportTab] = useState<'file' | 'manual'>('file');
+
+  // Manual Deck creation states
+  const [manualTitle, setManualTitle] = useState("");
+  const [manualDesc, setManualDesc] = useState("");
+  const [manualEmoji, setManualEmoji] = useState("📚");
+
+  // Question / Deck editing/adding modal states
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [editingQuestionDeckId, setEditingQuestionDeckId] = useState<string | null>(null);
+  const [isAddingQuestion, setIsAddingQuestion] = useState<boolean>(false);
+  const [editingDeckInfo, setEditingDeckInfo] = useState<Deck | null>(null);
+
+  // Synced local states for Deck Details Editing
+  const [deckEditName, setDeckEditName] = useState("");
+  const [deckEditDesc, setDeckEditDesc] = useState("");
+  const [deckEditEmoji, setDeckEditEmoji] = useState("📚");
+
+  useEffect(() => {
+    if (editingDeckInfo) {
+      setDeckEditName(editingDeckInfo.name);
+      setDeckEditDesc(editingDeckInfo.desc);
+      setDeckEditEmoji(editingDeckInfo.emoji || "📚");
+    }
+  }, [editingDeckInfo]);
+
+  // Synced local states for Question Editing Form
+  const [qFormType, setQFormType] = useState<'qa' | 'choice'>('choice');
+  const [qFormText, setQFormText] = useState("");
+  const [qFormAnswerText, setQFormAnswerText] = useState("");
+  const [qFormOptions, setQFormOptions] = useState<string[]>(["A. ", "B. ", "C. ", "D. "]);
+  const [qFormCorrectChar, setQFormCorrectChar] = useState("A");
+  const [qFormExplanation, setQFormExplanation] = useState("");
+
+  useEffect(() => {
+    if (editingQuestion) {
+      setQFormType(editingQuestion.type);
+      setQFormText(editingQuestion.q);
+      setQFormAnswerText(editingQuestion.a || "");
+      if (editingQuestion.options && editingQuestion.options.length > 0) {
+        const opts = [...editingQuestion.options];
+        while (opts.length < 4) opts.push("");
+        setQFormOptions(opts);
+      } else {
+        setQFormOptions(["A. ", "B. ", "C. ", "D. "]);
+      }
+      setQFormCorrectChar(editingQuestion.answer || "A");
+      setQFormExplanation(editingQuestion.explanation || "");
+    } else if (isAddingQuestion) {
+      setQFormType('choice');
+      setQFormText("");
+      setQFormAnswerText("");
+      setQFormOptions(["A. ", "B. ", "C. ", "D. "]);
+      setQFormCorrectChar("A");
+      setQFormExplanation("");
+    }
+  }, [editingQuestion, isAddingQuestion]);
+
+  const handleSaveDeckInfo = () => {
+    if (!editingDeckInfo) return;
+    const nameStr = deckEditName.trim() || "未命名题库";
+    const descStr = deckEditDesc.trim() || "无描述";
+    const updated = decks.map(d => {
+      if (d.id === editingDeckInfo.id) {
+        return {
+          ...d,
+          name: nameStr,
+          desc: descStr,
+          emoji: deckEditEmoji
+        };
+      }
+      return d;
+    });
+    setDecks(updated);
+    localStorage.setItem("study_xiaozhu_decks_v3", JSON.stringify(updated));
+    setEditingDeckInfo(null);
+  };
+
+  const handleSaveQuestionForm = () => {
+    if (!editingQuestionDeckId) return;
+    const questionText = qFormText.trim();
+    if (!questionText) {
+      alert("请输入问题描述内容。");
+      return;
+    }
+
+    let finalQuestion: Question;
+    if (qFormType === 'choice') {
+      const cleanOpts = qFormOptions.map((v, oIdx) => {
+        let text = v.trim();
+        const prefix = String.fromCharCode(65 + oIdx) + ". ";
+        if (!text.toUpperCase().startsWith(prefix)) {
+          text = prefix + text.replace(/^[A-Da-d][.\、\:\：\s]*/, "");
+        }
+        return text;
+      }).filter(Boolean);
+
+      if (cleanOpts.length === 0) {
+        alert("请输入并补全至少一个选项！");
+        return;
+      }
+
+      finalQuestion = {
+        id: editingQuestion ? editingQuestion.id : `q-${Date.now()}`,
+        type: 'choice',
+        q: questionText,
+        options: cleanOpts,
+        answer: qFormCorrectChar,
+        explanation: qFormExplanation.trim() || "自建选择解析",
+        mastered: editingQuestion ? (editingQuestion.mastered || false) : false
+      };
+    } else {
+      const answerText = qFormAnswerText.trim();
+      if (!answerText) {
+        alert("请输入参考答案内容。");
+        return;
+      }
+
+      finalQuestion = {
+        id: editingQuestion ? editingQuestion.id : `q-${Date.now()}`,
+        type: 'qa',
+        q: questionText,
+        a: answerText,
+        explanation: qFormExplanation.trim() || "自建问答解析",
+        mastered: editingQuestion ? (editingQuestion.mastered || false) : false
+      };
+    }
+
+    const updatedDecks = decks.map(d => {
+      if (d.id === editingQuestionDeckId) {
+        let isNew = true;
+        let updatedQuestions = d.questions.map(q => {
+          if (editingQuestion && q.id === editingQuestion.id) {
+            isNew = false;
+            return finalQuestion;
+          }
+          return q;
+        });
+
+        if (isNew) {
+          updatedQuestions = [...updatedQuestions, finalQuestion];
+        }
+
+        return {
+          ...d,
+          questions: updatedQuestions
+        };
+      }
+      return d;
+    });
+
+    setDecks(updatedDecks);
+    localStorage.setItem("study_xiaozhu_decks_v3", JSON.stringify(updatedDecks));
+    setEditingQuestion(null);
+    setIsAddingQuestion(false);
+  };
+
   // Custom confirm dialog state
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
@@ -1403,7 +1561,7 @@ export function QuestionBankTool({ onClose }: { onClose: () => void }) {
             className="flex flex-col text-left px-1 select-none"
           >
             {/* Header section with Back Button & Centered Title */}
-            <div className="relative flex items-center justify-between w-full mb-6">
+            <div className="relative flex items-center justify-between w-full mb-6 text-left">
               <button
                 onClick={() => setCurrView('home')}
                 className="w-[42px] h-[42px] flex items-center justify-center bg-white rounded-full text-[#455A4F] shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-stone-100/60 hover:shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
@@ -1414,28 +1572,45 @@ export function QuestionBankTool({ onClose }: { onClose: () => void }) {
                 </svg>
               </button>
               
-              <span className="text-[17px] font-black text-[#1b4332] tracking-tight">{selectedDeck.name}</span>
+              <div className="flex flex-col items-center justify-center">
+                <span className="text-[17px] font-black text-[#1b4332] tracking-tight">{selectedDeck.name}</span>
+                <span className="text-[11px] text-stone-400 font-bold mt-0.5">{selectedDeck.emoji || "📚"} {selectedDeck.desc}</span>
+              </div>
               
-              <button
-                onClick={() => {
-                  showConfirm(
-                    "删除题库确认",
-                    `确定要删除“${selectedDeck.name}”题库吗？该操作不可撤销。`,
-                    () => {
-                      const updatedDecks = decks.filter(d => d.id !== selectedDeck.id);
-                      setDecks(updatedDecks);
-                      localStorage.setItem("study_xiaozhu_decks_v3", JSON.stringify(updatedDecks));
-                      setCurrView('home');
-                    },
-                    "确认删除",
-                    "取消"
-                  );
-                }}
-                className="w-[42px] h-[42px] flex items-center justify-center bg-white rounded-full text-rose-600 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-stone-100/60 hover:shadow-md hover:bg-rose-50 hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                title="删除题库"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => {
+                    setEditingDeckInfo(selectedDeck);
+                  }}
+                  className="w-[42px] h-[42px] flex items-center justify-center bg-white rounded-full text-stone-600 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-stone-100/60 hover:shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                  title="编辑题库名称描述"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => {
+                    showConfirm(
+                      "删除题库确认",
+                      `确定要删除“${selectedDeck.name}”题库吗？该操作不可撤销。`,
+                      () => {
+                        const updatedDecks = decks.filter(d => d.id !== selectedDeck.id);
+                        setDecks(updatedDecks);
+                        localStorage.setItem("study_xiaozhu_decks_v3", JSON.stringify(updatedDecks));
+                        setCurrView('home');
+                      },
+                      "确认删除",
+                      "取消"
+                    );
+                  }}
+                  className="w-[42px] h-[42px] flex items-center justify-center bg-white rounded-full text-rose-600 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-stone-100/60 hover:shadow-md hover:bg-rose-50 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                  title="删除题库"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* "选择复习方式" section title */}
@@ -1665,13 +1840,118 @@ export function QuestionBankTool({ onClose }: { onClose: () => void }) {
                   alert("暂无需学习的试题。 ✨");
                 }
               }}
-              className="w-full bg-[#133024] hover:bg-[#0c221a] py-4 rounded-[28px] text-white font-extrabold text-[16px] flex items-center justify-center gap-2 shadow-[0_8px_30px_rgba(19,48,36,0.18)] hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer mt-4 mb-10 overflow-hidden"
+              className="w-full bg-[#133024] hover:bg-[#0c221a] py-4 rounded-[28px] text-white font-extrabold text-[16px] flex items-center justify-center gap-2 shadow-[0_8px_30px_rgba(19,48,36,0.18)] hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer mt-4 mb-8 overflow-hidden"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-white">
                 <polygon points="5 3 19 12 5 21 5 3" />
               </svg>
-              <span>开始复习</span>
+              <span>开始复习 ({selectedDeck.questions.length} 题)</span>
             </button>
+
+            {/* Questions Management Card Panel */}
+            <div className="bg-white rounded-[32px] border border-stone-200/40 shadow-[0_4px_24px_rgba(0,0,0,0.015)] p-7 flex flex-col gap-5 mt-4 mb-10 hover:shadow-md transition-all">
+              <div className="flex items-center justify-between pb-3 border-b border-stone-100 mb-1">
+                <h4 className="text-[18px] font-black text-[#1b4332] tracking-tight flex items-center gap-2">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-[#1b4332]">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <path d="M9 17h6M9 12h6M9 7h6" />
+                  </svg>
+                  试题管理
+                </h4>
+                <button
+                  onClick={() => {
+                    setEditingQuestionDeckId(selectedDeck.id);
+                    setIsAddingQuestion(true);
+                    setEditingQuestion(null);
+                  }}
+                  className="px-3.5 py-1.5 rounded-full bg-[#1b4332] text-white text-[11.5px] font-extrabold flex items-center gap-1 hover:bg-[#133024] cursor-pointer active:scale-95 transition-all shadow-2xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  添加试题
+                </button>
+              </div>
+
+              {selectedDeck.questions.length === 0 ? (
+                <div className="p-8 text-center text-stone-400 text-xs">
+                  暂无题目，点击右上角“添加试题”手动创建第一个试题 🎈
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2.5 max-h-[440px] overflow-y-auto pr-1">
+                  {selectedDeck.questions.map((qItem, idx) => {
+                    return (
+                      <div key={qItem.id} className="p-4 bg-stone-50/50 rounded-2xl border border-stone-100/60 flex items-start justify-between gap-4 transition-all hover:bg-stone-50">
+                        <div className="flex flex-col gap-1 text-left min-w-0 flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10.5px] font-black text-stone-400 font-mono">#{idx + 1}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black tracking-tight ${qItem.type === 'choice' ? 'bg-[#fef2f2] text-[#cd2b2b]' : 'bg-[#f4f7f4] text-[#2ebd6b]'}`}>
+                              {qItem.type === 'choice' ? '单选' : '问答'}
+                            </span>
+                          </div>
+                          <p className="text-[13.5px] font-extrabold text-[#2a3c30] leading-snug">
+                            {qItem.q}
+                          </p>
+                          {qItem.type === 'choice' && qItem.options && (
+                            <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-1 border-t border-dashed border-stone-200/40 pt-1.5">
+                              {qItem.options.map((opt, oIdx) => (
+                                <span key={oIdx} className="text-[11.5px] text-stone-400 truncate font-semibold">
+                                  {opt}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          <p className="text-[11.5px] text-[#4b6151] font-semibold mt-1.5 bg-stone-100/50 p-1 px-2.5 rounded-lg truncate">
+                            <span className="text-stone-400 font-bold mr-1">参考答案:</span>
+                            {qItem.type === 'choice' ? qItem.answer : qItem.a}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => {
+                              setEditingQuestionDeckId(selectedDeck.id);
+                              setEditingQuestion(qItem);
+                              setIsAddingQuestion(false);
+                            }}
+                            className="w-8 h-8 rounded-full bg-white border border-stone-200/80 flex items-center justify-center text-stone-600 hover:bg-stone-50 hover:text-[#1b4332] active:scale-95 transition-all shadow-3xs cursor-pointer"
+                            title="编辑试题"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M12 20h9" />
+                              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => {
+                              showConfirm(
+                                "删除试题确认",
+                                "确定要删除这道试题吗？该操作将从此题库中彻底移除本题。",
+                                () => {
+                                  const updatedDeckList = decks.map(d => {
+                                    if (d.id === selectedDeck.id) {
+                                      return {
+                                        ...d,
+                                        questions: d.questions.filter(qi => qi.id !== qItem.id)
+                                      };
+                                    }
+                                    return d;
+                                  });
+                                  setDecks(updatedDeckList);
+                                  localStorage.setItem("study_xiaozhu_decks_v3", JSON.stringify(updatedDeckList));
+                                }
+                              );
+                            }}
+                            className="w-8 h-8 rounded-full bg-white border border-stone-200/80 flex items-center justify-center text-rose-600 hover:bg-[#fff5f5] hover:text-[#b23838] active:scale-95 transition-all shadow-3xs cursor-pointer"
+                            title="删除试题"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
 
@@ -1702,54 +1982,156 @@ export function QuestionBankTool({ onClose }: { onClose: () => void }) {
               <div className="flex flex-col gap-6">
                 {/* Custom Big Header */}
                 <div className="flex flex-col gap-1.5 text-left">
-                  <h2 className="text-[32px] font-black text-[#1b4332] tracking-tight leading-tight">导入题库</h2>
+                  <h2 className="text-[32px] font-black text-[#1b4332] tracking-tight leading-tight">导入 / 新建题库</h2>
                   <p className="text-[14px] text-stone-500/90 font-medium">
                     选择最适合你的方式，快速将题目加入复习计划。
                   </p>
                 </div>
 
-                {/* Main Card (Document Import) */}
-                <div
-                  onDragEnter={handleDrag}
-                  onDragOver={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDrop={handleDrop}
-                  onClick={() => {
-                    const el = document.getElementById("file-upload-input");
-                    if (el) el.click();
-                  }}
-                  className={`group bg-white rounded-[32px] p-8 border border-stone-200/40 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-lg hover:border-stone-300/40 active:scale-[0.99] flex flex-col items-center justify-center text-center gap-5 cursor-pointer transition-all duration-300 select-none min-h-[300px]
-                    ${dragActive ? "border-[#2D4A3E] bg-[#FAF8F5] scale-[1.01]" : ""}
-                  `}
-                >
-                  <input
-                    id="file-upload-input"
-                    type="file"
-                    className="hidden"
-                    accept=".json,.csv,.txt,.zip"
-                    onChange={async (e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        await handleFileUpload(e.target.files[0]);
-                      }
+                {/* Tab selector segment controls */}
+                <div className="p-1.5 rounded-[22px] bg-stone-100/90 flex items-center w-full border border-stone-200/20 shadow-inner">
+                  <button
+                    onClick={() => {
+                      setImportTab('file');
+                      setImportError(null);
                     }}
-                  />
-
-                  {/* Beige File Icon Frame */}
-                  <div className="w-[84px] h-[84px] bg-[#FAF3EB] rounded-[24px] flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 duration-300">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#8B786D]">
-                      <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M12 18V12M12 12L9 15M12 12L15 15" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-
-                  <div className="flex flex-col gap-2 max-w-sm">
-                    <h3 className="text-[20px] font-black text-stone-900 tracking-tight">文件导入</h3>
-                    <p className="text-[13px] text-stone-500 font-medium leading-relaxed">
-                      支持批量导入常见文档格式，如 Word (docx), Excel (xlsx), PDF 及 txt 等，适合已有整理好的题库文件。
-                    </p>
-                  </div>
+                    className={`flex-1 py-3 rounded-lg text-[12.5px] font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${importTab === 'file' ? 'bg-white text-[#1b4332] shadow-xs scale-[1.01]' : 'text-stone-500 hover:text-stone-800'}`}
+                  >
+                    📂 快速文件导入
+                  </button>
+                  <button
+                    onClick={() => {
+                      setImportTab('manual');
+                      setImportError(null);
+                      setManualTitle("");
+                      setManualDesc("");
+                      setManualEmoji("📚");
+                    }}
+                    className={`flex-1 py-3 rounded-lg text-[12.5px] font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${importTab === 'manual' ? 'bg-white text-[#1b4332] shadow-xs scale-[1.01]' : 'text-stone-500 hover:text-stone-800'}`}
+                  >
+                    ✍️ 手动新建题库
+                  </button>
                 </div>
+
+                {importTab === 'manual' ? (
+                  /* Manual Deck creation Panel form */
+                  <div className="p-6 sm:p-7 rounded-[32px] bg-white border border-stone-200/40 shadow-[0_4px_24px_rgba(0,0,0,0.012)] flex flex-col gap-5 text-left transition-all">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[11.5px] font-extrabold text-[#1c2f24] uppercase tracking-wider">题库名称</label>
+                      <input
+                        type="text"
+                        className="px-4.5 py-3.5 bg-stone-50/70 text-[13px] rounded-2xl border border-stone-200/80 outline-none focus:border-[#2D4A3E] focus:bg-white transition-all font-bold text-stone-800"
+                        value={manualTitle}
+                        onChange={(e) => setManualTitle(e.target.value)}
+                        placeholder="例如：高中必修一数学核心考点题库"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[11.5px] font-extrabold text-[#1c2f24] uppercase tracking-wider">图标 Emoji</label>
+                      <div className="grid grid-cols-5 sm:flex sm:flex-wrap items-center gap-2">
+                        {["📚", "💻", "🔬", "📐", "📝", "⚙️", "🌟", "💡", "🧪", "📖", "🎨", "🌍", "🧬"].map(emo => (
+                          <button
+                            key={emo}
+                            type="button"
+                            onClick={() => setManualEmoji(emo)}
+                            className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg cursor-pointer border transition-all duration-200
+                              ${manualEmoji === emo ? "bg-[#1b4332] border-transparent text-white scale-105 font-bold shadow-xs" : "bg-stone-50/50 border-stone-200/60 text-stone-800 hover:bg-stone-100"}
+                            `}
+                          >
+                            {emo}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[11.5px] font-extrabold text-[#1c2f24] uppercase tracking-wider">描述（备考计划/学科分类等）</label>
+                      <input
+                        type="text"
+                        className="px-4.5 py-3.5 bg-stone-50/70 text-[13px] rounded-2xl border border-stone-200/80 outline-none focus:border-[#2D4A3E] focus:bg-white transition-all font-bold text-stone-800"
+                        value={manualDesc}
+                        onChange={(e) => setManualDesc(e.target.value)}
+                        placeholder="简单说明该题库的信息以备后续复习使用..."
+                      />
+                    </div>
+
+                    <div className="mt-4">
+                      <button
+                        onClick={() => {
+                          const titleVal = manualTitle.trim();
+                          if (!titleVal) {
+                            alert("请填入题库名称。");
+                            return;
+                          }
+                          const descVal = manualDesc.trim() || `手动创建，目前有 0 函数卡片。`;
+                          const newDeckId = `deck-${Date.now()}`;
+                          const newDeck: Deck = {
+                            id: newDeckId,
+                            name: titleVal,
+                            desc: descVal,
+                            emoji: manualEmoji,
+                            color: "bg-emerald-50 text-emerald-800 border-emerald-150",
+                            questions: []
+                          };
+                          const updated = [...decks, newDeck];
+                          setDecks(updated);
+                          localStorage.setItem("study_xiaozhu_decks_v3", JSON.stringify(updated));
+                          
+                          // Set editing variables so that they can add questions inside Question Editor immediately
+                          setSelectedDeckId(newDeckId);
+                          setCurrView('set-detail');
+                        }}
+                        className="w-full py-4 rounded-full bg-[#1b4332] hover:bg-[#133024] text-white font-black text-[14.5px] shadow-sm hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
+                      >
+                        确认创建并开始手动编写试题
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Main Card (Document Import) */
+                  <div
+                    onDragEnter={handleDrag}
+                    onDragOver={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDrop={handleDrop}
+                    onClick={() => {
+                      const el = document.getElementById("file-upload-input");
+                      if (el) el.click();
+                    }}
+                    className={`group bg-white rounded-[32px] p-8 border border-stone-200/40 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-lg hover:border-stone-300/40 active:scale-[0.99] flex flex-col items-center justify-center text-center gap-5 cursor-pointer transition-all duration-300 select-none min-h-[300px]
+                      ${dragActive ? "border-[#2D4A3E] bg-[#FAF8F5] scale-[1.01]" : ""}
+                    `}
+                  >
+                    <input
+                      id="file-upload-input"
+                      type="file"
+                      className="hidden"
+                      accept=".json,.csv,.txt,.zip"
+                      onChange={async (e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          await handleFileUpload(e.target.files[0]);
+                        }
+                      }}
+                    />
+
+                    {/* Beige File Icon Frame */}
+                    <div className="w-[84px] h-[84px] bg-[#FAF3EB] rounded-[24px] flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 duration-300">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#8B786D]">
+                        <path d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 18V12M12 12L9 15M12 12L15 15" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+
+                    <div className="flex flex-col gap-2 max-w-sm">
+                      <h3 className="text-[20px] font-black text-stone-900 tracking-tight">文件导入</h3>
+                      <p className="text-[13px] text-stone-500 font-medium leading-relaxed">
+                        支持批量导入常见文档格式，如 Word (docx), Excel (xlsx), PDF 及 txt 等，适合已有整理好的题库文件。
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Error Banner if any */}
                 {importError && (
@@ -2940,7 +3322,7 @@ export function QuestionBankTool({ onClose }: { onClose: () => void }) {
             </div>
 
             {/* NEW ADDITION: Subject Distribution Rings/Doughnut Chart (环形图) */}
-            <div className="bg-white rounded-[32px] border border-stone-200/40 shadow-[0_4px_24px_rgba(0,0,0,0.015)] p-7 flex flex-col gap-5 mt-6 mb-6 hover:shadow-md transition-all">
+            <div className="bg-white rounded-[32px] border border-stone-200/40 shadow-[0_4px_24px_rgba(0,0,0,0.015)] p-7 flex flex-col gap-5 mt-6 mb-6 hover:shadow-md transition-all text-left">
               <h4 className="text-[18px] font-black text-stone-900 tracking-tight">知识分布环形图</h4>
               
               <div className="flex flex-col sm:flex-row items-center justify-around gap-6 py-2">
@@ -2950,44 +3332,52 @@ export function QuestionBankTool({ onClose }: { onClose: () => void }) {
                     {/* Ring Base */}
                     <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f4f3f0" strokeWidth="12" />
                     
-                    {/* Mathematics ring (45%): starts at 0, length 45% of 251.2 = 113 */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="transparent"
-                      stroke="#1b4332"
-                      strokeWidth="12"
-                      strokeDasharray="113 251.2"
-                      strokeDashoffset="0"
-                      strokeLinecap="round"
-                    />
+                    {/* Make dynamic ring paths */}
+                    {(() => {
+                      let accumulatedOffset = 0;
+                      const ringColors = ["#1b4332", "#b2c89d", "#d1cdc4", "#e5a88a", "#6b9080", "#a3b18a"];
+                      
+                      const totalQuestionsCountSum = decks.reduce((sum, d) => sum + d.questions.length, 0);
+                      const computedShares = decks.map((deck) => {
+                        const count = deck.questions.length;
+                        const percentage = totalQuestionsCountSum > 0 ? Math.round((count / totalQuestionsCountSum) * 100) : 0;
+                        const masteredCount = deck.questions.filter(q => q.mastered).length;
+                        const masteryPercentage = count > 0 ? Math.round((masteredCount / count) * 100) : 0;
+                        return {
+                          id: deck.id,
+                          name: deck.name,
+                          count,
+                          percentage,
+                          masteryPercentage
+                        };
+                      });
 
-                    {/* English ring (35%): starts at 45% (offset -113), length 35% of 251.2 = 88 */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="transparent"
-                      stroke="#b2c89d"
-                      strokeWidth="12"
-                      strokeDasharray="88 251.2"
-                      strokeDashoffset="-113"
-                      strokeLinecap="round"
-                    />
+                      const renderDecks = computedShares.filter(d => d.percentage > 0);
+                      if (renderDecks.length === 0) {
+                        return <circle cx="50" cy="50" r="40" fill="transparent" stroke="#1b4332" strokeWidth="12" strokeDasharray="251.2 251.2" strokeDashoffset="0" strokeLinecap="round" />;
+                      }
 
-                    {/* Physics ring (20%): starts at 80% (offset -201), length 20% of 251.2 = 50 */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      fill="transparent"
-                      stroke="#d1cdc4"
-                      strokeWidth="12"
-                      strokeDasharray="50 251.2"
-                      strokeDashoffset="-201"
-                      strokeLinecap="round"
-                    />
+                      return renderDecks.map((ds, idx) => {
+                        const strokeDash = (ds.percentage / 100) * 251.2;
+                        const dashOffset = -accumulatedOffset;
+                        accumulatedOffset += strokeDash;
+                        const colorCode = ringColors[idx % ringColors.length];
+                        return (
+                          <circle
+                            key={ds.id}
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="transparent"
+                            stroke={colorCode}
+                            strokeWidth="12"
+                            strokeDasharray={`${strokeDash} 251.2`}
+                            strokeDashoffset={dashOffset}
+                            strokeLinecap="round"
+                          />
+                        );
+                      });
+                    })()}
                   </svg>
 
                   {/* Centered overall count tag */}
@@ -3001,70 +3391,60 @@ export function QuestionBankTool({ onClose }: { onClose: () => void }) {
 
                 {/* Color Legends with customizable tags */}
                 <div className="flex flex-col gap-3 font-sans w-full max-w-[200px]">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-3.5 h-3.5 rounded-full bg-[#1b4332]" />
-                      <span className="text-[14px] font-extrabold text-[#1b4332]">数学学科</span>
-                    </div>
-                    <span className="text-[13.5px] font-bold text-stone-500">45%</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-3.5 h-3.5 rounded-full bg-[#b2c89d]" />
-                      <span className="text-[14px] font-extrabold text-stone-600">英语词汇</span>
-                    </div>
-                    <span className="text-[13.5px] font-bold text-stone-500">35%</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-3.5 h-3.5 rounded-full bg-[#d1cdc4]" />
-                      <span className="text-[14px] font-extrabold text-stone-600">物理基础</span>
-                    </div>
-                    <span className="text-[13.5px] font-bold text-stone-500">20%</span>
-                  </div>
+                  {(() => {
+                    const ringColorsClasses = [
+                      { circle: "bg-[#1b4332]", text: "text-[#1b4332]" },
+                      { circle: "bg-[#b2c89d]", text: "text-stone-600" },
+                      { circle: "bg-[#d1cdc4]", text: "text-stone-600" },
+                      { circle: "bg-[#e5a88a]", text: "text-stone-600" },
+                      { circle: "bg-[#6b9080]", text: "text-stone-600" },
+                    ];
+                    
+                    const totalQuestionsCountSum = decks.reduce((sum, d) => sum + d.questions.length, 0);
+                    return decks.map((deck, idx) => {
+                      const count = deck.questions.length;
+                      const percentage = totalQuestionsCountSum > 0 ? Math.round((count / totalQuestionsCountSum) * 100) : 0;
+                      const col = ringColorsClasses[idx % ringColorsClasses.length];
+                      return (
+                        <div key={deck.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-3.5 h-3.5 rounded-full ${col.circle} shrink-0`} />
+                            <span className={`text-[14px] font-extrabold ${col.text} truncate max-w-[125px]`}>{deck.name}</span>
+                          </div>
+                          <span className="text-[13.5px] font-bold text-stone-500">{percentage}%</span>
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             </div>
 
             {/* Subject Mastery Details with smooth visual bar outlines */}
-            <div className="bg-white rounded-[32px] border border-stone-200/40 shadow-[0_4px_24px_rgba(0,0,0,0.015)] p-7 flex flex-col gap-6 mb-6 hover:shadow-md transition-all">
-              <h4 className="text-[18px] font-black text-stone-900 tracking-tight">学科掌握情况</h4>
+            <div className="bg-white rounded-[32px] border border-stone-200/40 shadow-[0_4px_24px_rgba(0,0,0,0.015)] p-7 flex flex-col gap-6 mb-6 hover:shadow-md transition-all text-left">
+              <h4 className="text-[18px] font-black text-stone-900 tracking-tight">知识库掌握率</h4>
               
               <div className="flex flex-col gap-5">
-                {/* Mathematics Row */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between text-[14px] font-extrabold text-stone-800">
-                    <span>数学</span>
-                    <span>85%</span>
-                  </div>
-                  <div className="w-full h-2.5 bg-stone-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#1b4332] rounded-full" style={{ width: '85%' }}></div>
-                  </div>
-                </div>
-
-                {/* English Row */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between text-[14px] font-extrabold text-[#748e5b]">
-                    <span>英语</span>
-                    <span>60%</span>
-                  </div>
-                  <div className="w-full h-2.5 bg-stone-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#b2c89d] rounded-full" style={{ width: '60%' }}></div>
-                  </div>
-                </div>
-
-                {/* Physics Row */}
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between text-[14px] font-extrabold text-stone-500">
-                    <span>物理</span>
-                    <span>40%</span>
-                  </div>
-                  <div className="w-full h-2.5 bg-stone-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#c0c0b8] rounded-full" style={{ width: '40%' }}></div>
-                  </div>
-                </div>
+                {(() => {
+                  const barColors = ["#1b4332", "#b2c89d", "#c0c0b8", "#e5a88a", "#6b9080"];
+                  return decks.map((deck, idx) => {
+                    const count = deck.questions.length;
+                    const masteredCount = deck.questions.filter(q => q.mastered).length;
+                    const masteryPercentage = count > 0 ? Math.round((masteredCount / count) * 100) : 0;
+                    const color = barColors[idx % barColors.length];
+                    return (
+                      <div key={deck.id} className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between text-[14px] font-extrabold text-stone-800">
+                          <span className="truncate max-w-[200px]">{deck.name}</span>
+                          <span>{masteryPercentage}%</span>
+                        </div>
+                        <div className="w-full h-2.5 bg-stone-100 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${masteryPercentage}%`, backgroundColor: color }}></div>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </div>
 
@@ -3112,32 +3492,27 @@ export function QuestionBankTool({ onClose }: { onClose: () => void }) {
 
       </div>
 
+      {/* Confirmation Dialog */}
       {confirmDialog && confirmDialog.isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          {/* Backdrop with fade in */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.6 }}
             onClick={() => setConfirmDialog(null)}
             className="absolute inset-0 bg-stone-900 backdrop-blur-xs"
           />
-          
-          {/* Card Content with spring entrance */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             className="relative w-full max-w-[340px] bg-white rounded-[28px] border border-stone-200/50 shadow-[0_20px_50px_rgba(0,0,0,0.18)] p-6 text-left select-none overflow-hidden z-50"
           >
-            {/* Decorative accent lines */}
             <div className="absolute top-0 inset-x-0 h-1.5 bg-[#1b4332]" />
-            
             <h4 className="text-[17px] font-black text-[#1b4332] tracking-tight mb-2 font-sans">
               {confirmDialog.title}
             </h4>
             <p className="text-[13px] leading-relaxed text-stone-500 font-medium mb-6 font-sans">
               {confirmDialog.message}
             </p>
-            
             <div className="flex gap-2.5">
               <button
                 onClick={() => setConfirmDialog(null)}
@@ -3150,6 +3525,228 @@ export function QuestionBankTool({ onClose }: { onClose: () => void }) {
                 className="flex-1 py-3 bg-[#1b4332] hover:bg-[#133024] text-white font-black rounded-2xl text-[12.5px] shadow-sm transition-all cursor-pointer text-center font-sans active:scale-[0.98]"
               >
                 {confirmDialog.confirmText}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Editing Deck Information Dialog Modal Overlay */}
+      {editingDeckInfo && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.6 }}
+            onClick={() => setEditingDeckInfo(null)}
+            className="absolute inset-0 bg-stone-900 backdrop-blur-xs"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="relative w-full max-w-[380px] bg-white rounded-[28px] border border-stone-200/50 shadow-[0_25px_60px_rgba(0,0,0,0.22)] p-6 text-left select-none overflow-hidden z-50"
+          >
+            <div className="absolute top-0 inset-x-0 h-1.5 bg-[#1b4332]" />
+            
+            <h4 className="text-[17px] font-black text-[#1b4332] tracking-tight mb-4 flex items-center gap-1.5">
+              <span>✍️ 编辑题库属性</span>
+            </h4>
+
+            <div className="flex flex-col gap-4 mb-6">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-black text-stone-400 uppercase tracking-wider">题库名称</label>
+                <input
+                  type="text"
+                  className="px-4 py-3 bg-stone-50 text-[13px] rounded-xl border border-stone-200/60 outline-none focus:border-[#2D4A3E] focus:bg-white font-bold text-stone-800 transition-all"
+                  value={deckEditName}
+                  onChange={(e) => setDeckEditName(e.target.value)}
+                  placeholder="请输入标题名称"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-black text-stone-400 uppercase tracking-wider">专属 Emoji 图标</label>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {["📚", "💻", "🔬", "📐", "📝", "⚙️", "🌟", "💡", "🧪", "📖", "🎨", "🌍"].map(emo => (
+                    <button
+                      key={emo}
+                      type="button"
+                      onClick={() => setDeckEditEmoji(emo)}
+                      className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm cursor-pointer border transition-all duration-200
+                        ${deckEditEmoji === emo ? "bg-[#1b4332] border-transparent text-white scale-105 font-bold shadow-3xs" : "bg-stone-50 border-stone-200/60 text-stone-800 hover:bg-stone-100"}
+                      `}
+                    >
+                      {emo}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-black text-stone-400 uppercase tracking-wider">题库简介描述</label>
+                <textarea
+                  className="px-4 py-3 bg-stone-50 text-[13px] rounded-xl border border-stone-200/60 outline-none focus:border-[#2D4A3E] focus:bg-white font-bold text-stone-800 transition-all h-20 resize-none leading-relaxed"
+                  value={deckEditDesc}
+                  onChange={(e) => setDeckEditDesc(e.target.value)}
+                  placeholder="请填入备选描述..."
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2.5">
+              <button
+                onClick={() => setEditingDeckInfo(null)}
+                className="flex-1 py-3 border border-stone-200 hover:bg-stone-50 text-stone-600 font-bold rounded-2xl text-[12.5px] transition-all cursor-pointer text-center font-sans active:scale-[0.98]"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleSaveDeckInfo}
+                className="flex-1 py-3 bg-[#1b4332] hover:bg-[#133024] text-white font-black rounded-2xl text-[12.5px] shadow-sm transition-all cursor-pointer text-center font-sans active:scale-[0.98]"
+              >
+                保存变更
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Question Creator / Editor Form Modal Overlay */}
+      {(isAddingQuestion || editingQuestion) && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.6 }}
+            onClick={() => {
+              setIsAddingQuestion(false);
+              setEditingQuestion(null);
+            }}
+            className="absolute inset-0 bg-stone-900 backdrop-blur-xs"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="relative w-full max-w-[420px] bg-white rounded-[28px] border border-stone-200/50 shadow-[0_25px_60px_rgba(0,0,0,0.22)] p-6 text-left select-none overflow-hidden z-50 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="absolute top-0 inset-x-0 h-1.5 bg-[#1b4332]" />
+            
+            <h4 className="text-[17px] font-black text-[#1b4332] tracking-tight mb-4 flex items-center gap-1.5">
+              <span>{editingQuestion ? "✍️ 编辑试题卡片" : "➕ 添加试题卡片"}</span>
+            </h4>
+
+            {/* Type selector tab */}
+            <div className="p-1 rounded-xl bg-stone-100 flex items-center w-full mb-4">
+              <button
+                type="button"
+                onClick={() => setQFormType('choice')}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${qFormType === 'choice' ? 'bg-white text-[#1b4332] shadow-xs' : 'text-stone-500'}`}
+              >
+                选项单选题
+              </button>
+              <button
+                type="button"
+                onClick={() => setQFormType('qa')}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${qFormType === 'qa' ? 'bg-white text-[#1b4332] shadow-xs' : 'text-stone-500'}`}
+              >
+                主观问答题
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-3.5 mb-6">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-black text-stone-400 uppercase tracking-wider">题目问题内容</label>
+                <textarea
+                  className="px-4 py-3 bg-stone-50 text-[13px] rounded-xl border border-stone-200/60 outline-none focus:border-[#2D4A3E] focus:bg-white font-bold text-stone-800 transition-all h-20 resize-none leading-relaxed"
+                  value={qFormText}
+                  onChange={(e) => setQFormText(e.target.value)}
+                  placeholder="请输入完整考题或核心问题描述..."
+                />
+              </div>
+
+              {qFormType === 'choice' ? (
+                /* Edit choices options input rows */
+                <div className="flex flex-col gap-2">
+                  <label className="text-[11px] font-black text-stone-400 uppercase tracking-wider">备选选项设置</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {qFormOptions.map((optVal, oIdx) => {
+                      const optLabel = String.fromCharCode(65 + oIdx);
+                      return (
+                        <div key={oIdx} className="flex items-center gap-1 bg-stone-50 border border-stone-200/60 rounded-xl px-2.5 py-1.5">
+                          <span className="text-[11.5px] font-black text-stone-400 font-mono">{optLabel}</span>
+                          <input
+                            type="text"
+                            className="bg-transparent text-[11.5px] font-bold text-stone-700 outline-none w-full border-none p-0"
+                            value={optVal.replace(/^[A-Da-d][.\、\:\：\s]*/, "")}
+                            onChange={(e) => {
+                              const newOpts = [...qFormOptions];
+                              newOpts[oIdx] = `${optLabel}. ${e.target.value}`;
+                              setQFormOptions(newOpts);
+                            }}
+                            placeholder={`配置选项 ${optLabel}`}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 mt-2.5">
+                    <label className="text-[11px] font-black text-stone-400 uppercase tracking-wider">正确答案选项</label>
+                    <div className="flex items-center gap-2">
+                      {["A", "B", "C", "D"].map(charOption => (
+                        <button
+                          key={charOption}
+                          type="button"
+                          onClick={() => setQFormCorrectChar(charOption)}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center text-[12px] font-black cursor-pointer border transition-all duration-200
+                            ${qFormCorrectChar === charOption ? "bg-[#1b4332] border-transparent text-white font-black" : "bg-stone-50 border-stone-200/60 text-stone-600 hover:bg-stone-100"}
+                          `}
+                        >
+                          {charOption}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Q&A references answers text area */
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-black text-stone-400 uppercase tracking-wider">核心参考答案</label>
+                  <textarea
+                    className="px-4 py-3 bg-stone-50 text-[13px] rounded-xl border border-stone-200/60 outline-none focus:border-[#2D4A3E] focus:bg-white font-bold text-stone-800 transition-all h-20 resize-none leading-relaxed"
+                    value={qFormAnswerText}
+                    onChange={(e) => setQFormAnswerText(e.target.value)}
+                    placeholder="请输入供记忆核对的主观解析或参考答案要点..."
+                  />
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-black text-stone-400 uppercase tracking-wider">思路点拨与难点解析</label>
+                <textarea
+                  className="px-4 py-3 bg-stone-50 text-[13px] rounded-xl border border-stone-200/60 outline-none focus:border-[#2D4A3E] focus:bg-white font-bold text-stone-800 transition-all h-20 resize-none leading-relaxed"
+                  value={qFormExplanation}
+                  onChange={(e) => setQFormExplanation(e.target.value)}
+                  placeholder="自选：请输入关联解学说明或错因分析..."
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAddingQuestion(false);
+                  setEditingQuestion(null);
+                }}
+                className="flex-1 py-3 border border-stone-200 hover:bg-stone-50 text-stone-600 font-bold rounded-2xl text-[12.5px] transition-all cursor-pointer text-center font-sans active:scale-[0.98]"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveQuestionForm}
+                className="flex-1 py-3 bg-[#1b4332] hover:bg-[#133024] text-white font-black rounded-2xl text-[12.5px] shadow-sm transition-all cursor-pointer text-center font-sans active:scale-[0.98]"
+              >
+                保存试题
               </button>
             </div>
           </motion.div>
