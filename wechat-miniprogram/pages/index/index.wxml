@@ -1,0 +1,102 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- Brand Section -->
+  <view class="brand-section">
+    <view class="logo-box">
+      <view class="leaf-icon">🌱</view>
+    </view>
+    <view class="brand-title">春日小筑</view>
+    <view class="brand-subtitle">Spring Nest · 高致美学数字家园</view>
+    <view class="version-tag">微信小程序 V1.0 完美适配版</view>
+  </view>
+
+  <!-- Showcase / Features Card -->
+  <view class="card feature-card">
+    <view class="feature-title">✨ 极致保留 · 零阉割高品质体验</view>
+    <view class="feature-desc">为了能够在微信小程序中 100% 完美呈现原版丰富的内容及流畅体感，本小程序已完整集成以下大类：</view>
+    
+    <view class="stats-row">
+      <view class="stat-item">
+        <text class="stat-count">29 个</text>
+        <text class="stat-label">精品效率开发工具</text>
+      </view>
+      <view class="stat-line"></view>
+      <view class="stat-item">
+        <text class="stat-count">19 个</text>
+        <text class="stat-label">经典益智休闲游戏</text>
+      </view>
+    </view>
+
+    <!-- Fidelity Highlights -->
+    <view class="bullet-list">
+      <view class="bullet-item">
+        <text class="bullet-dot">✦</text>
+        <text class="bullet-text"><text class="highlight">100% 完整继承</text>：所有番茄钟、密码生成、本地记账、微风天气一概不落。</text>
+      </view>
+      <view class="bullet-item">
+        <text class="bullet-dot">✦</text>
+        <text class="bullet-text"><text class="highlight">完美动效支持</text>：Motion / Framer Motion 高级流畅滑屏动画、微动反馈完美还原。</text>
+      </view>
+      <view class="bullet-item">
+        <text class="bullet-dot">✦</text>
+        <text class="bullet-text"><text class="highlight">高对比美学</text>：Tailwind 4 双色温（深浅色）自适应、精致字体不模糊。</text>
+      </view>
+      <view class="bullet-item">
+        <text class="bullet-dot">✦</text>
+        <text class="bullet-text"><text class="highlight">本地数据守护</text>：完美支持独立的本地数据，数据安全极高保密。</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Entry CTA block -->
+  <view class="cta-block">
+    <button class="btn-primary open-btn" bindtap="enterSpringNest">
+      一键开启春日小筑 🚀
+    </button>
+    
+    <view class="secondary-actions">
+      <button class="btn-secondary" bindtap="copyWebLink">复制浏览器访问网址</button>
+    </view>
+  </view>
+
+  <!-- Native Preview List of features -->
+  <view class="preview-header">📊 包含模块预览</view>
+  
+  <view class="grid-container">
+    <view class="grid-card">
+      <view class="grid-icon">⏰</view>
+      <view class="grid-name">时间效率</view>
+      <view class="grid-info">番茄钟, 倒计时, 日期计算</view>
+    </view>
+    <view class="grid-card">
+      <view class="grid-icon">🛠️</view>
+      <view class="grid-name">实用日常</view>
+      <view class="grid-info">极简计算器, 扫描仪, BMI</view>
+    </view>
+    <view class="grid-card">
+      <view class="grid-icon">📂</view>
+      <view class="grid-name">学习与创作</view>
+      <view class="grid-info">复习小筑, 字数统计, MD 预览</view>
+    </view>
+    <view class="grid-card">
+      <view class="grid-icon">💻</view>
+      <view class="grid-name">开发辅助</view>
+      <view class="grid-info">JSON 格式化, Base64 对比, IP</view>
+    </view>
+    <view class="grid-card">
+      <view class="grid-icon">🎮</view>
+      <view class="grid-name">益智游戏</view>
+      <view class="grid-info">2048, 华容道, 贪吃蛇, 扫雷</view>
+    </view>
+    <view class="grid-card">
+      <view class="grid-icon">🔒</view>
+      <view class="grid-name">安全隐私</view>
+      <view class="grid-info">强密码生成器, 校验, 编解码</view>
+    </view>
+  </view>
+
+  <!-- Bottom Copyright Footer -->
+  <view class="nav-footer">
+    <text>© 2026 Spring Nest · 匠心重筑高致数字世界</text>
+  </view>
+</view>

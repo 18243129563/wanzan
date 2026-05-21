@@ -1,27 +1,54 @@
 /**app.wxss**/
 page {
-  background-color: #FBFDF8;
-  color: #191C1A;
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica,
-    Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei',
-    sans-serif;
+  background-color: #FCF7F2;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #2D3B32;
+  font-size: 28rpx;
+  line-height: 1.5;
+  box-sizing: border-box;
 }
+
 .container {
-  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 30rpx;
+  box-sizing: border-box;
 }
-.text-primary {
-  color: #446732;
+
+.card {
+  background: #ffffff;
+  border-radius: 28rpx;
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+  border: 1rpx solid rgba(27, 67, 50, 0.08);
+  box-shadow: 0 4rpx 16rpx rgba(27, 67, 50, 0.02);
 }
-.bg-primary {
-  background-color: #446732;
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
-.section-title {
-  font-size: 20px;
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-primary {
+  background-color: #1b4332;
+  color: #ffffff;
+  border-radius: 40rpx;
+  padding: 24rpx 48rpx;
+  font-size: 30rpx;
   font-weight: bold;
-  margin-bottom: 12px;
+  text-align: center;
+  box-shadow: 0 8rpx 20rpx rgba(27, 67, 50, 0.15);
+  transition: all 0.2s ease;
 }
-.section-subtitle {
-  font-size: 14px;
-  color: #747878;
-  margin-bottom: 20px;
+
+.btn-primary:active {
+  transform: scale(0.97);
+  opacity: 0.9;
 }

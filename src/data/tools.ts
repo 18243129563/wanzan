@@ -33,7 +33,7 @@ export const securityTools = [
 ];
 
 export const learningTools = [
-  { id: 'question-bank-importer', name: '复习小筑', desc: '学习卡片管理', icon: HelpCircle, bg: 'bg-primary/20 text-primary' },
+  { id: 'question-bank-importer', name: '学习小筑', desc: '学习卡片管理', icon: HelpCircle, bg: 'bg-primary/20 text-primary' },
   { id: 'word-counter', name: '字数统计', desc: '分析文本指标', icon: ListOrdered, bg: 'bg-secondary-container/40 text-secondary' },
   { id: 'markdown-preview', name: 'Markdown', desc: '富文本编辑器', icon: FileText, bg: 'bg-tertiary-container/30 text-tertiary' },
   { id: 'text-diff', name: '文本对比', desc: '增删高亮', icon: File, bg: 'bg-primary-container text-on-primary-container' },

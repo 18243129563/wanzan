@@ -1,13 +1,14 @@
+// app.js
 App({
-  onLaunch() {
-    // 登录
-    wx.login({
-      success: res => {
-        // 发送 res.code 到后台换取 openId, sessionKey, unionId
-      }
-    })
+  onLaunch: function () {
+    console.log("春日小筑 Mini Program Initialized.");
+    // Display global startup info
+    const logs = wx.getStorageSync('logs') || [];
+    logs.unshift(Date.now());
+    wx.setStorageSync('logs', logs);
   },
   globalData: {
-    userInfo: null
+    // Default shared production URL of Spring Nest for the view container
+    webUrl: "https://ais-pre-g7wnmt6efgjablc3m226us-643527748225.us-east1.run.app"
   }
-})
+});

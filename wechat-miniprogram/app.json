@@ -1,48 +1,14 @@
 {
   "pages": [
-    "pages/discover/discover",
-    "pages/development/development",
-    "pages/efficiency/efficiency",
-    "pages/profile/profile",
-    "pages/tool/tool"
+    "pages/index/index",
+    "pages/webview/webview"
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#FBFDF8",
-    "navigationBarTitleText": "Spring Nest",
-    "navigationBarTextStyle": "black"
+    "navigationBarBackgroundColor": "#1b4332",
+    "navigationBarTitleText": "春日小筑",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#FCF7F2"
   },
-  "tabBar": {
-    "color": "#747878",
-    "selectedColor": "#446732",
-    "backgroundColor": "#FBFDF8",
-    "list": [
-      {
-        "pagePath": "pages/discover/discover",
-        "text": "发现",
-        "iconPath": "assets/images/discover.png",
-        "selectedIconPath": "assets/images/discover_active.png"
-      },
-      {
-        "pagePath": "pages/development/development",
-        "text": "开发",
-        "iconPath": "assets/images/development.png",
-        "selectedIconPath": "assets/images/development_active.png"
-      },
-      {
-        "pagePath": "pages/efficiency/efficiency",
-        "text": "效率",
-        "iconPath": "assets/images/efficiency.png",
-        "selectedIconPath": "assets/images/efficiency_active.png"
-      },
-      {
-        "pagePath": "pages/profile/profile",
-        "text": "我的",
-        "iconPath": "assets/images/profile.png",
-        "selectedIconPath": "assets/images/profile_active.png"
-      }
-    ]
-  },
-  "style": "v2",
   "sitemapLocation": "sitemap.json"
 }

@@ -1,0 +1,9 @@
+{
+  "desc": "关于索引规则的详情，可参考文档 https://developers.weixin.qq.com/miniprogram/dev/reference/configuration/sitemap.html",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "*"
+    }
+  ]
+}
